@@ -15,9 +15,9 @@ static unsigned int hashGenerator(struct socket_evt_bind *bind)
 	return hash;
 }
 
-static struct socket_lookup parse_accept_request(const unsigned char *buf)
+static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
 {
-	struct socket_lookup ret;
+	struct socket_evt_bind ret;
 	
 	ret.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
 	ret.sin_port = buf[34] | (buf[35] << 8);
@@ -79,7 +79,8 @@ static void *eth_process(void *arg)
 {
 	struct concurrent_list *eth_queue;
 	struct eth_pck *eth_pck = NULL;
-	struct socket_lookup lookup;
+	struct socket_evt_bind lookup;
+	struct socket_evt_bind *map_lookup;
 	
 	unsigned short int pck_type;
 	
@@ -98,10 +99,7 @@ static void *eth_process(void *arg)
 		}
 		
 		wait_for_element(eth_queue);
-		
-		printf("Thread %lu is up\n", pthread_self());
-		fflush(stdout);
-		
+				
 		eth_pck = remove_from_concurrent_list_tail(eth_queue);
 		
 		if(eth_pck == NULL)
@@ -148,11 +146,21 @@ static void *eth_process(void *arg)
 					//SYN && ACK
 					lookup = parse_accept_request(eth_pck->buf);
 					
-					printf("lookup ip: %u\n", lookup.sin_addr);
-					printf("lookup port: %u\n", lookup.sin_port);
-					printf("lookup family: %u\n", lookup.sin_family);
-					printf("lookup type: %u\n", lookup.sin_type);
-					fflush(stdout);
+					map_lookup = hashmap_lookup(lookup_map, &lookup);
+					
+					if(map_lookup == NULL)
+					{						
+						continue;
+					}
+					
+					if(map_lookup->accept_callback == NULL)
+					{
+						continue;
+					}
+					
+					map_lookup->accept_callback(map_lookup->sockFD);
+					
+					continue;
 				}
 				
 				if(eth_pck->buf[47] & 4)
@@ -160,13 +168,17 @@ static void *eth_process(void *arg)
 					//RST
 					printf("GOT CONNECTION RST\n");
 					fflush(stdout);
+					
+					continue;
 				}
 				
 				if(eth_pck->buf[47] & 8)
 				{
 					//PSH
 					printf("GOT CONNECTION PSH\n");
-					fflush(stdout);				
+					fflush(stdout);	
+
+					continue;					
 				}
 			}
 			break;

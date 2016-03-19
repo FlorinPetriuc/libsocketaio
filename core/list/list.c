@@ -50,6 +50,61 @@ void add_to_concurrent_list_head(struct concurrent_list *list, void *value)
 	SIGNAL_COND(list->cond);
 }
 
+static int value_compare(struct socket_evt_bind *bind, struct socket_evt_bind *lookup)
+{
+	if(bind->sin_addr != lookup->sin_addr)
+	{
+		return 1;
+	}
+	
+	if(bind->sin_port != lookup->sin_port)
+	{
+		return 1;
+	}
+	
+	if(bind->sin_family != lookup->sin_family)
+	{
+		return 1;
+	}
+	
+	if(bind->sin_type != lookup->sin_type)
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+void *list_lookup(struct concurrent_list *list, void *data)
+{
+	struct list_node *ret;
+	
+	TAKE_MUTEX(list->mtx);
+	
+	ret = list->head;
+	
+	while(ret)
+	{
+		if(value_compare(ret->val, data))
+		{
+			ret = ret->next;
+			
+			continue;
+		}
+		
+		break;
+	}
+	
+	RELEASE_MUTEX(list->mtx);
+	
+	if(ret)
+	{
+		return ret->val;
+	}
+	
+	return NULL;
+}
+
 void *remove_from_concurrent_list_tail(struct concurrent_list *list)
 {
 	void *ret;

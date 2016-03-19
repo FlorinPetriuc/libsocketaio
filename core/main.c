@@ -3,16 +3,19 @@
 void accept_cb(const int sockFD)
 {
 	printf("accept on %d", sockFD);
+	fflush(stdout);
 }
 
 void recv_cb(const int sockFD)
 {
 	printf("recv on %d", sockFD);
+	fflush(stdout);
 }
 
 void rst_cb(const int sockFD)
 {
 	printf("rst on %d", sockFD);
+	fflush(stdout);
 }
 
 int main(void)
@@ -47,7 +50,7 @@ int main(void)
 		return 1;
 	}
 	
-	register_socket(sock, SOCK_STREAM, accept_cb, recv_cb, rst_cb);
+	register_socket(sock, SOCK_STREAM, accept_cb, NULL, NULL);
 	
 	while(1)
 	{

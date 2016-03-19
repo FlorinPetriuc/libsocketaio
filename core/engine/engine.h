@@ -29,16 +29,6 @@ struct socket_evt_bind
 	callback_t rst_callback;
 };
 
-struct socket_lookup
-{	
-	in_addr_t sin_addr;
-	
-	unsigned short int sin_port;
-	
-	unsigned char sin_family;
-	unsigned char sin_type;
-};
-
 struct eth_pck
 {
 	unsigned char *buf;

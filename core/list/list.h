@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 
+#include "../engine/engine.h"
 #include "../misc/memory.h"
 #include "../misc/mutex.h"
 
@@ -32,5 +33,7 @@ void add_to_concurrent_list_head(struct concurrent_list *list, void *value);
 void *remove_from_concurrent_list_tail(struct concurrent_list *list);
 
 void wait_for_element(struct concurrent_list *list);
+
+void *list_lookup(struct concurrent_list *list, void *data);
 
 #endif
