@@ -8,7 +8,7 @@ void *xmalloc(const size_t size)
 	
 	if(ret == NULL)
 	{
-		perror("Out of memory");
+		perror("[FATAL] Out of memory");
 		exit(EXIT_FAILURE);
 	}
 	

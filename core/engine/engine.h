@@ -1,7 +1,12 @@
 #ifndef _ENGINE_H_
 #define _ENGINE_H_
 
+#include <unistd.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <linux/if_packet.h>
+#include <net/ethernet.h>
+#include <string.h>
 
 #include "../misc/memory.h"
 #include "../hashmap/hashmap.h"
@@ -34,6 +39,12 @@ struct socket_lookup
 	unsigned char sin_type;
 };
 
+struct eth_pck
+{
+	unsigned char *buf;
+	
+	int len;
+};
 
 int engine_init(const int workers_no);
 

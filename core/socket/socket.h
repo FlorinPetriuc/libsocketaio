@@ -9,7 +9,7 @@
 
 int register_socket(const int socket, const unsigned char socket_type, callback_t accept_callback, 
 					callback_t recv_callback, callback_t rst_callback);
-
-
+					
+int create_monitor_socket();
 
 #endif

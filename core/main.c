@@ -22,7 +22,7 @@ int main(void)
 	
 	struct sockaddr_in addr;
 	
-	sock=socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	
 	if(sock < 0)
     {
@@ -37,6 +37,8 @@ int main(void)
     {
         return 1;
     }
+	
+	listen(sock, 10);
 	
 	res = engine_init(8);
 	if(res)
