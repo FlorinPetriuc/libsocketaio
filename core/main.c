@@ -37,5 +37,7 @@ int main(void)
         return 1;
     }
 	
-	libsocketaio_register_socket(sock, SOCK_STREAM, accept_cb, recv_cb, rst_cb);
+	engine_init(8);
+	
+	register_socket(sock, SOCK_STREAM, accept_cb, recv_cb, rst_cb);
 }

@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 
 #include "../misc/memory.h"
+#include "../hashmap/hashmap.h"
 
 typedef void (*callback_t)(const int);
 
@@ -22,6 +23,8 @@ struct socket_evt_bind
 	callback_t recv_callback;
 	callback_t rst_callback;
 };
+
+void engine_init(const int workers_no);
 
 int engine_register_bind_struct(struct socket_evt_bind *bind);
 

@@ -1,8 +1,7 @@
 #include "socket.h"
 
-int libsocketaio_register_socket(const int socket, const unsigned char socket_type, 
-								callback_t accept_callback, callback_t recv_callback, 
-								callback_t rst_callback)
+int register_socket(const int socket, const unsigned char socket_type, callback_t accept_callback, 
+					callback_t recv_callback, callback_t rst_callback)
 {
 	struct sockaddr_in addr;
 	struct socket_evt_bind *bind;
