@@ -18,6 +18,7 @@ void rst_cb(const int sockFD)
 int main(void)
 {
 	int sock;
+	int res;
 	
 	struct sockaddr_in addr;
 	
@@ -37,7 +38,17 @@ int main(void)
         return 1;
     }
 	
-	engine_init(8);
+	res = engine_init(8);
+	if(res)
+	{
+		printf("engine init failed");
+		return 1;
+	}
 	
 	register_socket(sock, SOCK_STREAM, accept_cb, recv_cb, rst_cb);
+	
+	while(1)
+	{
+		sleep(1);
+	}
 }

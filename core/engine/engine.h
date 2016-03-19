@@ -35,7 +35,7 @@ struct socket_lookup
 };
 
 
-void engine_init(const int workers_no);
+int engine_init(const int workers_no);
 
 int engine_register_bind_struct(struct socket_evt_bind *bind);
 
