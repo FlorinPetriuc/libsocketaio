@@ -1,5 +1,20 @@
 #include "main.h"
 
+void accept_cb(const int sockFD)
+{
+	printf("accept on %d", sockFD);
+}
+
+void recv_cb(const int sockFD)
+{
+	printf("recv on %d", sockFD);
+}
+
+void rst_cb(const int sockFD)
+{
+	printf("rst on %d", sockFD);
+}
+
 int main(void)
 {
 	int sock;
@@ -15,12 +30,12 @@ int main(void)
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(0);
+    addr.sin_port = htons(80);
 
     if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
     {
         return 1;
     }
 	
-	register_socket(sock, SOCK_STREAM);
+	libsocketaio_register_socket(sock, SOCK_STREAM, accept_cb, recv_cb, rst_cb);
 }
