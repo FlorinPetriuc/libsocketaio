@@ -11,7 +11,7 @@ static unsigned int hashGenerator(struct socket_evt_bind *bind)
 	hash ^= bind->sin_port;
 	
 	hash &= 0xFFFF;
-		
+	
 	return hash;
 }
 
