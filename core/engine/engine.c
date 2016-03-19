@@ -27,6 +27,18 @@ static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
 	return ret;
 }
 
+static struct socket_evt_bind parse_push_request(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+	
+	ret.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.sin_port = buf[34] | (buf[35] << 8);
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_STREAM;
+	
+	return ret;
+}
+
 static void *eth_listen(void *arg)
 {
 	struct concurrent_list *eth_queue;
@@ -175,9 +187,22 @@ static void *eth_process(void *arg)
 				if(eth_pck->buf[47] & 8)
 				{
 					//PSH
-					printf("GOT CONNECTION PSH\n");
-					fflush(stdout);	
-
+					lookup = parse_push_request(eth_pck->buf);
+					
+					map_lookup = hashmap_lookup(lookup_map, &lookup);
+					
+					if(map_lookup == NULL)
+					{						
+						continue;
+					}
+					
+					if(map_lookup->recv_callback == NULL)
+					{
+						continue;
+					}
+					
+					map_lookup->recv_callback(map_lookup->sockFD);
+					
 					continue;					
 				}
 			}

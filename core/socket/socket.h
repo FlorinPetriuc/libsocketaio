@@ -7,8 +7,8 @@
 #include "../misc/memory.h"
 #include "../engine/engine.h"
 
-int register_socket(const int socket, const unsigned char socket_type, callback_t accept_callback, 
-					callback_t recv_callback, callback_t rst_callback);
+int register_socket(const int socket, const unsigned char socket_type, struct sockaddr_in *addr,
+					callback_t accept_callback, callback_t recv_callback, callback_t rst_callback);
 					
 int create_monitor_socket();
 

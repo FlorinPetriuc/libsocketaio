@@ -1,20 +1,54 @@
 #include "main.h"
 
-void accept_cb(const int sockFD)
-{
-	printf("accept on %d", sockFD);
-	fflush(stdout);
-}
-
 void recv_cb(const int sockFD)
 {
-	printf("recv on %d", sockFD);
+	int len;
+	
+	char buf[4096];
+	
+	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
+	
+	if(len < 0)
+	{
+		printf("can not read from connection\n");
+		fflush(stdout);
+		
+		return;
+	}
+	
+	buf[len] = '\0';
+	
+	printf("GOT: %s\n", buf);
 	fflush(stdout);
 }
 
 void rst_cb(const int sockFD)
 {
-	printf("rst on %d", sockFD);
+	printf("rst on %d\n", sockFD);
+	fflush(stdout);
+}
+
+void accept_cb(const int sockFD)
+{
+	int newSocket;
+	
+	struct sockaddr_in cli_addr;
+	
+	socklen_t clilen = sizeof(cli_addr);
+	
+	newSocket = accept(sockFD, (struct sockaddr *) &cli_addr, &clilen);
+	
+	if(newSocket < 0)
+	{
+		printf("can not accept connection\n");
+		fflush(stdout);
+		
+		return;
+	}
+	
+	register_socket(newSocket, SOCK_STREAM, &cli_addr, NULL, recv_cb, rst_cb);
+	
+	printf("registered new connection\n");
 	fflush(stdout);
 }
 
@@ -50,7 +84,7 @@ int main(void)
 		return 1;
 	}
 	
-	register_socket(sock, SOCK_STREAM, accept_cb, NULL, NULL);
+	register_socket(sock, SOCK_STREAM, &addr, accept_cb, NULL, NULL);
 	
 	while(1)
 	{
