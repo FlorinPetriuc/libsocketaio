@@ -27,6 +27,7 @@
 #include <linux/if_packet.h>
 #include <net/ethernet.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../misc/memory.h"
 #include "../hashmap/hashmap.h"
@@ -43,6 +44,8 @@ struct socket_evt_bind
 	
 	unsigned char sin_family;
 	unsigned char sin_type;
+	
+	bool check_wildcard;
 	
 	callback_t accept_callback;
 	callback_t recv_callback;

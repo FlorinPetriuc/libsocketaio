@@ -43,6 +43,7 @@ static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
 	ret.sin_port = buf[34] | (buf[35] << 8);
 	ret.sin_family = AF_INET;
 	ret.sin_type = SOCK_STREAM;
+	ret.check_wildcard = true;
 	
 	return ret;
 }
@@ -55,6 +56,7 @@ static struct socket_evt_bind parse_push_request(const unsigned char *buf)
 	ret.sin_port = buf[34] | (buf[35] << 8);
 	ret.sin_family = AF_INET;
 	ret.sin_type = SOCK_STREAM;
+	ret.check_wildcard = false;
 	
 	return ret;
 }

@@ -74,6 +74,11 @@ TRY_AGAIN:
 		return ret;
 	}
 	
+	if(!lookup->check_wildcard)
+	{
+		return NULL;
+	}
+	
 	if(lookup->sin_addr != INADDR_ANY)
 	{
 		lookup->sin_addr = INADDR_ANY;
