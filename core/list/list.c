@@ -72,30 +72,45 @@ void add_to_concurrent_list_head(struct concurrent_list *list, void *value)
 
 static int value_compare(struct socket_evt_bind *bind, struct socket_evt_bind *lookup)
 {
-	if(bind->sin_addr != lookup->sin_addr)
-	{
-		return 1;
-	}
-	
-	if(bind->sin_port != lookup->sin_port)
-	{
+	if(bind->remote_endpoint_present != lookup->remote_endpoint_present)
+	{		
 		return 1;
 	}
 	
 	if(bind->sin_family != lookup->sin_family)
-	{
+	{		
 		return 1;
 	}
 	
 	if(bind->sin_type != lookup->sin_type)
+	{		
+		return 1;
+	}
+	
+	if(bind->local_endpoint.sin_addr != lookup->local_endpoint.sin_addr)
 	{
+		return 1;
+	}
+	
+	if(bind->local_endpoint.sin_port != lookup->local_endpoint.sin_port)
+	{		
+		return 1;
+	}
+	
+	if(bind->remote_endpoint.sin_addr != lookup->remote_endpoint.sin_addr)
+	{
+		return 1;
+	}
+	
+	if(bind->remote_endpoint.sin_port != lookup->remote_endpoint.sin_port)
+	{		
 		return 1;
 	}
 	
 	return 0;
 }
 
-void *list_lookup(struct concurrent_list *list, void *data)
+void *concurrent_list_lookup(struct concurrent_list *list, void *data)
 {
 	struct list_node *ret;
 	

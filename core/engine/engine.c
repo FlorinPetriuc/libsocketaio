@@ -26,9 +26,11 @@ static unsigned int hashGenerator(struct socket_evt_bind *bind)
 {
 	unsigned int hash = 0;
 	
-	hash = (bind->sin_addr & 0xFF000000) >> 16;
-	hash |= (bind->sin_addr & 0x00FF0000) >> 16;
-	hash ^= bind->sin_port;
+	hash = bind->local_endpoint.sin_addr >> 16;
+	hash ^= bind->local_endpoint.sin_port;
+	
+	hash ^= bind->remote_endpoint.sin_addr >> 16;
+	hash ^= bind->remote_endpoint.sin_port;
 	
 	hash &= 0xFFFF;
 	
@@ -39,11 +41,16 @@ static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
 	
-	ret.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
-	ret.sin_port = buf[34] | (buf[35] << 8);
+	ret.local_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.local_endpoint.sin_port = buf[34] | (buf[35] << 8);
+	
+	ret.remote_endpoint_present = false;
+	
+	ret.remote_endpoint.sin_addr = 0;
+	ret.remote_endpoint.sin_port = 0;
+	
 	ret.sin_family = AF_INET;
-	ret.sin_type = SOCK_STREAM;
-	ret.check_wildcard = true;
+	ret.sin_type = SOCK_STREAM;	
 	
 	return ret;
 }
@@ -52,11 +59,16 @@ static struct socket_evt_bind parse_push_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
 	
-	ret.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
-	ret.sin_port = buf[34] | (buf[35] << 8);
+	ret.local_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.local_endpoint.sin_port = buf[36] | (buf[37] << 8);
+	
+	ret.remote_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.remote_endpoint.sin_port = buf[34] | (buf[35] << 8);
+	
+	ret.remote_endpoint_present = true;
+	
 	ret.sin_family = AF_INET;
 	ret.sin_type = SOCK_STREAM;
-	ret.check_wildcard = false;
 	
 	return ret;
 }
@@ -116,6 +128,8 @@ static void *eth_process(void *arg)
 	struct socket_evt_bind lookup;
 	struct socket_evt_bind *map_lookup;
 	
+	struct sockaddr_in accept_addr;
+	
 	unsigned short int pck_type;
 	
 	unsigned char sin_proto;
@@ -133,7 +147,7 @@ static void *eth_process(void *arg)
 		}
 		
 		wait_for_element(eth_queue);
-				
+
 		eth_pck = remove_from_concurrent_list_tail(eth_queue);
 		
 		if(eth_pck == NULL)
@@ -159,6 +173,7 @@ static void *eth_process(void *arg)
 			continue;
 		}
 		
+		//ipv4
 		if(eth_pck->buf[14] >> 4 != 4)
 		{
 			continue;
@@ -180,6 +195,10 @@ static void *eth_process(void *arg)
 					//SYN && ACK
 					lookup = parse_accept_request(eth_pck->buf);
 					
+					accept_addr.sin_addr.s_addr = lookup.local_endpoint.sin_addr;
+					accept_addr.sin_port = lookup.local_endpoint.sin_port;
+					accept_addr.sin_family = AF_INET;
+
 					map_lookup = hashmap_lookup(lookup_map, &lookup);
 					
 					if(map_lookup == NULL)
@@ -192,7 +211,7 @@ static void *eth_process(void *arg)
 						continue;
 					}
 					
-					map_lookup->accept_callback(map_lookup->sockFD);
+					map_lookup->accept_callback(map_lookup->sockFD, &accept_addr);
 					
 					continue;
 				}
@@ -254,7 +273,7 @@ int engine_init(const int workers_no)
 	eth_queue = new_concurrent_list();
 	
 	lookup_map = new_hashmap(64 * 1024, hashGenerator);
-	
+
 	ret = pthread_create(&worker, NULL, eth_listen, eth_queue);
 	if(ret)
 	{

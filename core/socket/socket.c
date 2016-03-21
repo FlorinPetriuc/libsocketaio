@@ -29,8 +29,9 @@ int create_monitor_socket()
 	return ret;
 }
 
-int register_socket(const int socket, const unsigned char socket_type, struct sockaddr_in *addr,
-					callback_t accept_callback, callback_t recv_callback, callback_t rst_callback)
+int register_socket(const int socket, const unsigned char socket_type, 
+					struct sockaddr_in *local_endpoint, struct sockaddr_in *remote_endpoint,
+					accept_callback_t accept_callback, recv_callback_t recv_callback, close_callback_t close_callback)
 {
 	struct socket_evt_bind *bind;
 	
@@ -40,24 +41,57 @@ int register_socket(const int socket, const unsigned char socket_type, struct so
 	{
 		return -1;
 	}
-		
-	if(addr->sin_family != AF_INET)
+	
+	if(local_endpoint == NULL)
+	{
+		return -1;
+	}
+	
+	if(local_endpoint->sin_family != AF_INET)
+	{
+		return -1;
+	}
+	
+	if(socket < 0)
 	{
 		return -1;
 	}
 	
 	bind = xmalloc(sizeof(struct socket_evt_bind));
 	
-	bind->sin_addr = addr->sin_addr.s_addr;
-	bind->sin_port = addr->sin_port;
-	bind->sin_family = addr->sin_family;
+	bind->sockFD = socket;
+	
+	bind->sin_family = local_endpoint->sin_family;
 	bind->sin_type = socket_type;
 	
-	bind->sockFD = socket;
+	bind->local_endpoint.sin_addr = local_endpoint->sin_addr.s_addr;
+	bind->local_endpoint.sin_port = local_endpoint->sin_port;
+	
+	if(remote_endpoint)
+	{
+		if(local_endpoint->sin_family != remote_endpoint->sin_family)
+		{
+			free(bind);
+			
+			return -1;
+		}
+		
+		bind->remote_endpoint_present = true;
+		
+		bind->remote_endpoint.sin_addr = remote_endpoint->sin_addr.s_addr;
+		bind->remote_endpoint.sin_port = remote_endpoint->sin_port;
+	}
+	else
+	{
+		bind->remote_endpoint_present = false;
+		
+		bind->remote_endpoint.sin_addr = 0;
+		bind->remote_endpoint.sin_port = 0;
+	}
 	
 	bind->accept_callback = accept_callback;
 	bind->recv_callback = recv_callback;
-	bind->rst_callback = rst_callback;
+	bind->close_callback = close_callback;
 	
 	res = engine_register_bind_struct(bind);
 	

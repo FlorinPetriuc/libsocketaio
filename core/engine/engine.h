@@ -32,24 +32,32 @@
 #include "../misc/memory.h"
 #include "../hashmap/hashmap.h"
 
-typedef void (*callback_t)(const int);
+typedef void (*close_callback_t)(const int);
+typedef void (*recv_callback_t)(const int);
+typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
+
+struct enpoint
+{
+	in_addr_t sin_addr;
+	
+	unsigned short int sin_port;
+};
 
 struct socket_evt_bind
 {
 	int sockFD;
 	
-	in_addr_t sin_addr;
+	struct enpoint local_endpoint;
+	struct enpoint remote_endpoint;	
 	
-	unsigned short int sin_port;
+	bool remote_endpoint_present;
 	
 	unsigned char sin_family;
 	unsigned char sin_type;
 	
-	bool check_wildcard;
-	
-	callback_t accept_callback;
-	callback_t recv_callback;
-	callback_t rst_callback;
+	accept_callback_t accept_callback;
+	recv_callback_t recv_callback;
+	close_callback_t close_callback;
 };
 
 struct eth_pck

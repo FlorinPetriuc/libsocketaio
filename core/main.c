@@ -42,13 +42,13 @@ void recv_cb(const int sockFD)
 	fflush(stdout);
 }
 
-void rst_cb(const int sockFD)
+void close_cb(const int sockFD)
 {
 	printf("rst on %d\n", sockFD);
 	fflush(stdout);
 }
 
-void accept_cb(const int sockFD)
+void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
 {
 	int newSocket;
 	
@@ -65,9 +65,9 @@ void accept_cb(const int sockFD)
 		
 		return;
 	}
-	
-	register_socket(newSocket, SOCK_STREAM, &cli_addr, NULL, recv_cb, rst_cb);
-	
+
+	register_socket(newSocket, SOCK_STREAM, accept_addr, &cli_addr, NULL, recv_cb, close_cb);
+
 	printf("registered new connection\n");
 	fflush(stdout);
 }
@@ -104,7 +104,7 @@ int main(void)
 		return 1;
 	}
 	
-	register_socket(sock, SOCK_STREAM, &addr, accept_cb, NULL, NULL);
+	register_socket(sock, SOCK_STREAM, &addr, NULL, accept_cb, NULL, NULL);
 	
 	while(1)
 	{

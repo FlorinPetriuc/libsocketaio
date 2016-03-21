@@ -54,6 +54,6 @@ void *remove_from_concurrent_list_tail(struct concurrent_list *list);
 
 void wait_for_element(struct concurrent_list *list);
 
-void *list_lookup(struct concurrent_list *list, void *data);
+void *concurrent_list_lookup(struct concurrent_list *list, void *data);
 
 #endif

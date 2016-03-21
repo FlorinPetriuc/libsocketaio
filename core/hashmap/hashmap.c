@@ -50,7 +50,7 @@ void add_to_hashmap(struct hashmap *map, struct socket_evt_bind *bind)
 	hash = map->hash_fct(bind);
 	
 	bucket = map->buckets[hash];
-		
+
 	add_to_concurrent_list_head(bucket, bind);
 }
 
@@ -64,25 +64,26 @@ struct socket_evt_bind *hashmap_lookup(struct hashmap *map, struct socket_evt_bi
 	
 TRY_AGAIN:
 	hash = map->hash_fct(lookup);
-	
-	bucket = map->buckets[hash];
 		
-	ret = list_lookup(bucket, lookup);
+	bucket = map->buckets[hash];
+
+	ret = concurrent_list_lookup(bucket, lookup);
 	
 	if(ret)
 	{
 		return ret;
 	}
 	
-	if(!lookup->check_wildcard)
+	if(lookup->remote_endpoint_present)
 	{
 		return NULL;
 	}
 	
-	if(lookup->sin_addr != INADDR_ANY)
+	//accept lookup
+	if(lookup->local_endpoint.sin_addr != INADDR_ANY)
 	{
-		lookup->sin_addr = INADDR_ANY;
-		
+		lookup->local_endpoint.sin_addr = INADDR_ANY;
+
 		goto TRY_AGAIN;
 	}
 	
