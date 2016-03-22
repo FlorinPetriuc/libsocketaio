@@ -140,6 +140,60 @@ void *concurrent_list_lookup(struct concurrent_list *list, void *data)
 	return NULL;
 }
 
+void *concurrent_list_remove(struct concurrent_list *list, void *data)
+{
+	struct list_node *node;
+	
+	void *ret;
+	
+	TAKE_MUTEX(list->mtx);
+	
+	node = list->head;
+	
+	while(node)
+	{
+		if(value_compare(node->val, data))
+		{
+			node = node->next;
+			
+			continue;
+		}
+		
+		break;
+	}	
+	
+	if(node == NULL)
+	{
+		RELEASE_MUTEX(list->mtx);
+		
+		return NULL;
+	}
+	
+	ret = node->val;
+	
+	if(node->prev)
+	{
+		node->prev->next = node->next;
+	}
+	
+	if(node->next)
+	{
+		node->next->prev = node->prev;
+	}
+	
+	if(node->prev == NULL && node->next == NULL)
+	{
+		list->head = NULL;
+		list->tail = NULL;
+	}
+	
+	RELEASE_MUTEX(list->mtx);
+	
+	free(node);
+	
+	return ret;
+}
+
 void *remove_from_concurrent_list_tail(struct concurrent_list *list)
 {
 	void *ret;

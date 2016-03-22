@@ -37,7 +37,7 @@ static unsigned int hashGenerator(struct socket_evt_bind *bind)
 	return hash;
 }
 
-static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
+static struct socket_evt_bind parse_tcp_accept_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
 	
@@ -55,7 +55,7 @@ static struct socket_evt_bind parse_accept_request(const unsigned char *buf)
 	return ret;
 }
 
-static struct socket_evt_bind parse_push_request(const unsigned char *buf)
+static struct socket_evt_bind parse_tcp_push_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
 	
@@ -64,6 +64,42 @@ static struct socket_evt_bind parse_push_request(const unsigned char *buf)
 	
 	ret.remote_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
 	ret.remote_endpoint.sin_port = buf[34] | (buf[35] << 8);
+	
+	ret.remote_endpoint_present = true;
+	
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_STREAM;
+	
+	return ret;
+}
+
+static struct socket_evt_bind parse_tcp_close_request(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+	
+	ret.local_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.local_endpoint.sin_port = buf[36] | (buf[37] << 8);
+	
+	ret.remote_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.remote_endpoint.sin_port = buf[34] | (buf[35] << 8);
+	
+	ret.remote_endpoint_present = true;
+	
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_STREAM;
+	
+	return ret;
+}
+
+static struct socket_evt_bind parse_tcp_close_request_reverse(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+	
+	ret.remote_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.remote_endpoint.sin_port = buf[36] | (buf[37] << 8);
+	
+	ret.local_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.local_endpoint.sin_port = buf[34] | (buf[35] << 8);
 	
 	ret.remote_endpoint_present = true;
 	
@@ -193,7 +229,7 @@ static void *eth_process(void *arg)
 				if((eth_pck->buf[47] & 2) && (eth_pck->buf[47] & 16))
 				{
 					//SYN && ACK
-					lookup = parse_accept_request(eth_pck->buf);
+					lookup = parse_tcp_accept_request(eth_pck->buf);
 					
 					accept_addr.sin_addr.s_addr = lookup.local_endpoint.sin_addr;
 					accept_addr.sin_port = lookup.local_endpoint.sin_port;
@@ -216,11 +252,34 @@ static void *eth_process(void *arg)
 					continue;
 				}
 				
-				if(eth_pck->buf[47] & 4)
+				if((eth_pck->buf[47] & 4) || (eth_pck->buf[47] & 1))
 				{
-					//RST
-					printf("GOT CONNECTION RST\n");
-					fflush(stdout);
+					//RST or FIN
+					lookup = parse_tcp_close_request(eth_pck->buf);
+					
+					map_lookup = hashmap_remove(lookup_map, &lookup);
+					
+					if(map_lookup == NULL)
+					{						
+						lookup = parse_tcp_close_request_reverse(eth_pck->buf);
+					
+						map_lookup = hashmap_remove(lookup_map, &lookup);
+						
+						if(map_lookup == NULL)
+						{						
+							continue;
+						}
+					}
+					
+					if(map_lookup->close_callback == NULL)
+					{
+						continue;
+					}
+					
+					map_lookup->close_callback(map_lookup->sockFD);
+					
+					close(map_lookup->sockFD);
+					free(map_lookup);
 					
 					continue;
 				}
@@ -228,7 +287,7 @@ static void *eth_process(void *arg)
 				if(eth_pck->buf[47] & 8)
 				{
 					//PSH
-					lookup = parse_push_request(eth_pck->buf);
+					lookup = parse_tcp_push_request(eth_pck->buf);
 					
 					map_lookup = hashmap_lookup(lookup_map, &lookup);
 					
@@ -244,7 +303,7 @@ static void *eth_process(void *arg)
 					
 					map_lookup->recv_callback(map_lookup->sockFD);
 					
-					continue;					
+					continue;
 				}
 			}
 			break;

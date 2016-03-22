@@ -41,5 +41,6 @@ void *new_hashmap(const unsigned int buckets_no, hash_fct_t hash_fct);
 
 void add_to_hashmap(struct hashmap *map, struct socket_evt_bind *bind);
 struct socket_evt_bind *hashmap_lookup(struct hashmap *map, struct socket_evt_bind *lookup);
+struct socket_evt_bind *hashmap_remove(struct hashmap *map, struct socket_evt_bind *lookup);
 
 #endif

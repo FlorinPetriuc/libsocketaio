@@ -89,3 +89,20 @@ TRY_AGAIN:
 	
 	return NULL;
 }
+
+struct socket_evt_bind *hashmap_remove(struct hashmap *map, struct socket_evt_bind *lookup)
+{
+	struct socket_evt_bind *ret;
+	
+	unsigned int hash;
+	
+	struct concurrent_list *bucket;
+	
+	hash = map->hash_fct(lookup);
+
+	bucket = map->buckets[hash];
+
+	ret = concurrent_list_remove(bucket, lookup);
+	
+	return ret;
+}

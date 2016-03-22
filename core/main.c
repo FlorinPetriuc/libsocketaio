@@ -44,7 +44,7 @@ void recv_cb(const int sockFD)
 
 void close_cb(const int sockFD)
 {
-	printf("rst on %d\n", sockFD);
+	printf("close on %d\n", sockFD);
 	fflush(stdout);
 }
 
@@ -67,7 +67,7 @@ void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
 	}
 
 	register_socket(newSocket, SOCK_STREAM, accept_addr, &cli_addr, NULL, recv_cb, close_cb);
-
+	
 	printf("registered new connection\n");
 	fflush(stdout);
 }
