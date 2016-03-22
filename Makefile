@@ -25,6 +25,9 @@ all:
 debug:
 	make -f debug.mk
 	cp ./core/build/lib/libsocketaio.so ./libsocketaio.so
+	
+install:
+	cp libsocketaio.so /usr/lib
 
 clean:
 	rm ./core/build/obj/*

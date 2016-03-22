@@ -19,4 +19,4 @@
 #
 
 simple_server: simple_server.c
-	$(CC) $(CFLAGS) $@.c -o$@ -L../ -lsocketaio -I ../include $(LDFLAGS)
+	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio -I ../include $(LDFLAGS)
