@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
  
 #include "libsocketaio.h"
 
@@ -100,6 +101,8 @@ int main(void)
 	int res;
 	
 	struct sockaddr_in addr;
+	
+	signal(SIGPIPE, SIG_IGN);
 	
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	
