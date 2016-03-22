@@ -29,12 +29,13 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "../misc/memory.h"
-#include "../hashmap/hashmap.h"
-
 typedef void (*close_callback_t)(const int);
 typedef void (*recv_callback_t)(const int);
 typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
+
+#include "../socket/socket.h"
+#include "../misc/memory.h"
+#include "../hashmap/hashmap.h"
 
 struct enpoint
 {
