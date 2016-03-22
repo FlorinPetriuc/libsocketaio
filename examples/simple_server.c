@@ -18,7 +18,12 @@
  *
  */
 
-#include "main.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+ 
+#include "libsocketaio.h"
 
 void recv_cb(const int sockFD)
 {
@@ -30,21 +35,32 @@ void recv_cb(const int sockFD)
 	
 	if(len < 0)
 	{
-		printf("can not read from connection\n");
+		printf("can not read from socket %d\n", sockFD);
 		fflush(stdout);
 		
 		return;
 	}
 	
-	buf[len] = '\0';
+	if(send(sockFD, "Hello ", sizeof("Hello ") - 1, 0) < 0)
+	{
+		printf("failed to send to socket %d\n", sockFD);
+		fflush(stdout);
+		
+		return;
+	}
 	
-	printf("GOT: %s\n", buf);
-	fflush(stdout);
+	if(send(sockFD, buf, len, 0) < 0)
+	{
+		printf("failed to send to socket %d\n", sockFD);
+		fflush(stdout);
+		
+		return;
+	}
 }
 
 void close_cb(const int sockFD)
 {
-	printf("close on %d\n", sockFD);
+	printf("closed socket %d\n", sockFD);
 	fflush(stdout);
 }
 
@@ -60,15 +76,21 @@ void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
 	
 	if(newSocket < 0)
 	{
-		printf("can not accept connection\n");
+		printf("can not accept connection from socket %d\n", sockFD);
 		fflush(stdout);
 		
 		return;
 	}
 
-	register_socket(newSocket, SOCK_STREAM, accept_addr, &cli_addr, NULL, recv_cb, close_cb);
+	if(libsocketaio_register_tcp_socket(newSocket, accept_addr, &cli_addr, recv_cb, close_cb))
+	{
+		printf("can not accept register socket %d\n", sockFD);
+		fflush(stdout);
+		
+		return;
+	}
 	
-	printf("registered new connection\n");
+	printf("registered new connection: %d\n", newSocket);
 	fflush(stdout);
 }
 
@@ -83,6 +105,8 @@ int main(void)
 	
 	if(sock < 0)
     {
+		printf("can not create tcp socket %d\n", sock);
+		
         return 1;
     }
 
@@ -92,19 +116,24 @@ int main(void)
 
     if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
     {
+		printf("can not bind to interface using socket %d\n", sock);
+		close(sock);
+		
         return 1;
     }
 	
 	listen(sock, 10);
 	
-	res = engine_init(8);
+	res = libsocketaio_initialize(8);
 	if(res)
 	{
-		printf("engine init failed");
+		printf("libsocketaio_initialize failed");
+		close(sock);
+		
 		return 1;
 	}
 	
-	register_socket(sock, SOCK_STREAM, &addr, NULL, accept_cb, NULL, NULL);
+	libsocketaio_register_tcp_server_socket(sock, &addr, accept_cb);
 	
 	while(1)
 	{
