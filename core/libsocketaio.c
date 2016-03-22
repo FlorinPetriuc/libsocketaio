@@ -17,15 +17,23 @@
  * USA.
  *
  */
+ 
+#include "./engine/engine.h"
+#include "./socket/socket.h"
+ 
+int libsocketaio_initialize(const int number_of_workers)
+{	
+	return engine_init(number_of_workers);
+}
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *srv_addr, 
+																	accept_callback_t accept_cb)
+{
+	return register_socket(socketFD, SOCK_STREAM, srv_addr, NULL, accept_cb, NULL, NULL);
+}
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "../debug/debug.h"
-
-void *xmalloc(const size_t size);
-
-#endif
+int libsocketaio_register_tcp_socket(const int socketFD, struct sockaddr_in *local_addr, struct sockaddr_in *remote_addr, 
+																recv_callback_t recv_cb, close_callback_t close_cb)
+{
+	return register_socket(socketFD, SOCK_STREAM, local_addr, remote_addr, NULL, recv_cb, close_cb);
+}

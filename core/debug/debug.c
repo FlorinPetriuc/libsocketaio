@@ -17,12 +17,16 @@
  * USA.
  *
  */
+ 
+#include "debug.h"
 
-#ifndef _MAIN_H_
-#define _MAIN_H_
-
-#include "./socket/socket.h"
-#include "./engine/engine.h"
-#include "./misc/memory.h"
-
-#endif
+void debugPrint(const char *template, const unsigned int n, ...)
+{
+	va_list args;
+	
+	va_start(args, n);
+	vprintf(template, args);
+	va_end(args);
+	
+	fflush(stdout);
+}

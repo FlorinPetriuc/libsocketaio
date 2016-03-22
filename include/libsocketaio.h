@@ -21,6 +21,14 @@
 #ifndef _LIBSOCKETAIO_H_
 #define _LIBSOCKETAIO_H_
 
+typedef void (*close_callback_t)(const int);
+typedef void (*recv_callback_t)(const int);
+typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
 
+int libsocketaio_initialize(const int number_of_workers);
+int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *addr, 
+																accept_callback_t accept_cb);
+int libsocketaio_register_tcp_socket(const int socketFD, struct sockaddr_in *local_addr, struct sockaddr_in *remote_addr, 
+																recv_callback_t recv_cb, close_callback_t close_cb);
 
 #endif

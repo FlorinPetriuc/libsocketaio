@@ -129,7 +129,7 @@ static void *eth_listen(void *arg)
 	
 	if(sockFD < 0)
 	{
-		perror("[FATAL] Unable to create monitor socket");
+		libsocketaio_print("[FATAL] Unable to create monitor socket", 0);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -139,7 +139,7 @@ static void *eth_listen(void *arg)
 		
 		if(len < 0)
 		{
-			perror("[ERROR] Unable to read from monitor socket");
+			libsocketaio_print("[ERROR] Unable to read from monitor socket", 0);
 			
 			continue;
 		}
@@ -171,7 +171,7 @@ static void *eth_process(void *arg)
 	unsigned char sin_proto;
 	
 	eth_queue = arg;
-	
+		
 	while(1)
 	{
 		if(eth_pck)
@@ -348,6 +348,8 @@ int engine_init(const int workers_no)
 			goto out;
 		}
 	}
+	
+	libsocketaio_print("[INFO] libsocketaio initialized with %d workers: ", 1, workers_no);
 	
 out:
 	return ret;

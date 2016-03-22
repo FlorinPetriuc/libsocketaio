@@ -18,14 +18,22 @@
  *
  */
 
-#ifndef _MEMORY_H_
-#define _MEMORY_H_
+#ifndef _DEBUG_H_
+#define _DEBUG_H_
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
+ 
+#ifdef LIBSOCKETAIO_DEBUG
 
-#include "../debug/debug.h"
+#define libsocketaio_print debugPrint
 
-void *xmalloc(const size_t size);
+void debugPrint(const char *template, const unsigned int n, ...);
 
+#else
+
+#define libsocketaio_print(x, y, ...)
+
+#endif
+ 
 #endif
