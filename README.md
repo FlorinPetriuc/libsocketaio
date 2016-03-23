@@ -9,15 +9,12 @@ The library depends on libpthread.
 ## Installation
 
 1. Download the source<br />
-
 	git clone https://github.com/FlorinPetriuc/libsocketaio.git
 	
 2. Compile<br />
-
 	make
 	
 3. Install<br />
-
 	sudo make install
 	
 ## Usage
@@ -27,7 +24,7 @@ Follow the examples.
 
 ## Examples
 
-simple_tcp_server:
+simple_tcp_server:<br />
 	Echoes "Hello " + <client data> back to the sender
 	
 	Build & run: 
