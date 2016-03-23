@@ -25,8 +25,8 @@ The library depends on libpthread.
 	
 ## Usage
 
-Include <b>libsocketaio.h</b> in your aplication and link to <b>-lsocketaio</b>.
-Follow the examples. 
+Include <b>libsocketaio.h</b> in your aplication and link to <b>-lsocketaio</b>.</br>
+Initialize the library and register sockets. Follow the examples.
 
 ## Examples
 
