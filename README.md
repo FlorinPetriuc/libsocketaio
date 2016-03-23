@@ -30,9 +30,9 @@ Follow the examples.
 
 ## Examples
 
-simple_tcp_server:<br />
+### simple_tcp_server:
 	Echoes "Hello " + [client message] back to the sender
-		
+
 	```bash
 	$ cd examples
 	$ make simple_tcp_server
