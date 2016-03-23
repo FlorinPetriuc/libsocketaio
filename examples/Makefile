@@ -18,5 +18,5 @@
 #
 #
 
-simple_server: simple_server.c
+simple_server: simple_tcp_server.c
 	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio -I ../include $(LDFLAGS)
