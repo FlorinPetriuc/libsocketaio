@@ -37,3 +37,6 @@ Initialize the library and register sockets. Follow the examples.
 	$ make simple_tcp_server
 	$ ./simple_tcp_server
 	```
+
+## TODO
+Support for UDP sockets
