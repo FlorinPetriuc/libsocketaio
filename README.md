@@ -8,7 +8,7 @@ The library depends on libpthread.
 
 ## Installation
 
-1. Download the source
+1. Download the source<br />
 	git clone https://github.com/FlorinPetriuc/libsocketaio.git
 	
 2. Compile
