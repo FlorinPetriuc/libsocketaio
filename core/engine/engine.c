@@ -226,9 +226,15 @@ static void *eth_process(void *arg)
 					continue;
 				}
 				
-				if((eth_pck->buf[47] & 2) && (eth_pck->buf[47] & 16))
+				if(!(eth_pck->buf[47] & 16))
 				{
-					//SYN && ACK
+					//must contain ack
+					continue;
+				}
+				
+				if(eth_pck->buf[47] & 2)
+				{
+					//SYN
 					lookup = parse_tcp_accept_request(eth_pck->buf);
 					
 					accept_addr.sin_addr.s_addr = lookup.local_endpoint.sin_addr;
