@@ -30,8 +30,7 @@ Follow the examples.
 
 ## Examples
 
-### simple_tcp_server:
-	Echoes "Hello " + [client message] back to the sender
+1. <b>simple_tcp_server</b>: echoes "Hello " + [client message] back to the sender
 
 	```bash
 	$ cd examples
