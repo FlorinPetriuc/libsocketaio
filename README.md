@@ -31,10 +31,8 @@ Follow the examples.
 ## Examples
 
 simple_tcp_server:<br />
-	Echoes "Hello " + <client data> back to the sender
-	
-	Build & run: 
-	
+	Echoes "Hello " + [client message] back to the sender
+		
 	```bash
 	$ cd examples
 	$ make simple_tcp_server
