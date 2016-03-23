@@ -26,6 +26,8 @@
  
 #include <libsocketaio.h>
 
+#define MAKE_IPv4(x, y, z, t) (x) | ((y) << 8) | ((z) << 16) | ((t) << 24)
+
 void recv_cb(const int sockFD)
 {
 	int len;
@@ -33,32 +35,10 @@ void recv_cb(const int sockFD)
 	char buf[4096];
 	
 	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
+
+	buf[len] = '\0';
 	
-	if(len < 0)
-	{
-		printf("can not read from socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-	
-	if(send(sockFD, "Hello ", sizeof("Hello ") - 1, 0) < 0)
-	{
-		printf("failed to send to socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-	
-	if(send(sockFD, buf, len, 0) < 0)
-	{
-		printf("failed to send to socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-	
-	printf("Sent hello\n");
+	printf("Got: %s\n", buf);
 	fflush(stdout);
 }
 
@@ -68,42 +48,15 @@ void close_cb(const int sockFD)
 	fflush(stdout);
 }
 
-void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
-{
-	int newSocket;
-	
-	struct sockaddr_in cli_addr;
-	
-	socklen_t clilen = sizeof(cli_addr);
-	
-	newSocket = accept(sockFD, (struct sockaddr *) &cli_addr, &clilen);
-	
-	if(newSocket < 0)
-	{
-		printf("can not accept connection from socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-
-	if(libsocketaio_register_tcp_socket(newSocket, accept_addr, &cli_addr, recv_cb, close_cb))
-	{
-		printf("can not register socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-	
-	printf("registered new connection: %d\n", newSocket);
-	fflush(stdout);
-}
-
 int main(void)
 {
 	int sock;
 	int res;
 	
-	struct sockaddr_in addr;
+	struct sockaddr_in srv_addr;
+	struct sockaddr_in cli_addr;
+	
+	socklen_t len;
 	
 	signal(SIGPIPE, SIG_IGN);
 	
@@ -116,20 +69,10 @@ int main(void)
         return 1;
     }
 
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(80);
-
-    if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
-    {
-		printf("can not bind to interface using socket %d\n", sock);
-		close(sock);
+    srv_addr.sin_family = AF_INET;
+    srv_addr.sin_addr.s_addr = MAKE_IPv4(127,0,0,1);
+    srv_addr.sin_port = htons(80);
 		
-        return 1;
-    }
-	
-	listen(sock, 10);
-	
 	res = libsocketaio_initialize(8);
 	if(res)
 	{
@@ -142,7 +85,33 @@ int main(void)
 	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
 	fflush(stdout);
 	
-	libsocketaio_register_tcp_server_socket(sock, &addr, accept_cb);
+	if(connect(sock, (struct sockaddr *)&srv_addr, sizeof(srv_addr)) < 0)
+	{
+		printf("connect failed");
+		close(sock);
+		
+		return 1;
+	}
+	
+	len = sizeof(cli_addr);
+	
+	if(getsockname(sock, (struct sockaddr *)&cli_addr, &len))
+	{
+		printf("getsockname failed");
+		close(sock);
+		
+		return 1;
+	}
+	
+	if(libsocketaio_register_tcp_socket(sock, &cli_addr, &srv_addr, recv_cb, close_cb))
+	{
+		printf("can not register socket %d\n", sock);
+		fflush(stdout);
+		
+		return 1;
+	}
+	
+	send(sock, "World", sizeof("World") - 1, 0);
 	
 	while(1)
 	{
