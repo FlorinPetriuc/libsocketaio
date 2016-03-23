@@ -20,14 +20,13 @@
 
 all:
 	make -f release.mk
-	cp ./core/build/lib/libsocketaio.so ./libsocketaio.so
 
 debug:
 	make -f debug.mk
-	cp ./core/build/lib/libsocketaio.so ./libsocketaio.so
 	
 install:
-	cp libsocketaio.so /usr/lib
+	cp ./core/build/lib/libsocketaio.so /usr/lib/libsocketaio.so
+	cp ./include/libsocketaio.h /usr/include/libsocketaio.h
 
 clean:
 	rm ./core/build/obj/*

@@ -24,7 +24,7 @@
 #include <netinet/in.h>
 #include <signal.h>
  
-#include "libsocketaio.h"
+#include <libsocketaio.h>
 
 void recv_cb(const int sockFD)
 {
@@ -135,6 +135,9 @@ int main(void)
 		
 		return 1;
 	}
+	
+	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
+	fflush(stdout);
 	
 	libsocketaio_register_tcp_server_socket(sock, &addr, accept_cb);
 	

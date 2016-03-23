@@ -17,6 +17,10 @@
 # USA.
 #
 #
+.PHONY: simple_tcp_server clean
 
-simple_server: simple_tcp_server.c
-	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio -I ../include $(LDFLAGS)
+simple_tcp_server: simple_tcp_server.c
+	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio $(LDFLAGS)
+	
+clean:
+	rm -rf ./simple_tcp_server
