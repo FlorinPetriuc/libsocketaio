@@ -25,7 +25,7 @@ The library depends on libpthread.
 	
 ## Usage
 
-Include libsocketaio.h in your aplication and link to -lsocketaio.
+Include <b>libsocketaio.h</b> in your aplication and link to <b>-lsocketaio</b>.
 Follow the examples. 
 
 ## Examples
