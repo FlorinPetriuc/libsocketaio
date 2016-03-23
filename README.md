@@ -38,5 +38,13 @@ Initialize the library and register sockets. Follow the examples.
 	$ sudo ./simple_tcp_server
 	```
 
+1. <b>simple_tcp_client</b>: connects to a server and sends "World"
+
+	```bash
+	$ cd examples
+	$ make simple_tcp_client
+	$ sudo ./simple_tcp_client
+	```
+
 ## TODO
 Support for UDP sockets
