@@ -1,6 +1,6 @@
 # libsocketaio
 
-Libsocketaio is a C event-driven socket library.
+Libsocketaio is a C event-driven library for easy socket manipulation.
 
 ## Dependencies
 
@@ -34,6 +34,9 @@ simple_tcp_server:<br />
 	Echoes "Hello " + <client data> back to the sender
 	
 	Build & run: 
-	cd examples
-	make simple_tcp_server
-	./simple_tcp_server
+	
+	```bash
+	$ cd examples
+	$ make simple_tcp_server
+	$ ./simple_tcp_server
+	```
