@@ -35,7 +35,7 @@ Initialize the library and register sockets. Follow the examples.
 	```bash
 	$ cd examples
 	$ make simple_tcp_server
-	$ ./simple_tcp_server
+	$ sudo ./simple_tcp_server
 	```
 
 ## TODO
