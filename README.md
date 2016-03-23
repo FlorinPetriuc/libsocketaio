@@ -20,7 +20,7 @@ The library depends on libpthread.
 	
 3. Install:<br />
 	```bash
-	$ sudo make 
+	$ sudo make install
 	```
 	
 ## Usage
