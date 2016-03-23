@@ -21,8 +21,34 @@
 #ifndef _LIBSOCKETAIO_H_
 #define _LIBSOCKETAIO_H_
 
+/*
+ * The version of the running library
+ */
+extern unsigned int libsocketaio_version;
+
+/*
+ * Socket close callback function
+ *
+ * Params:
+ * the socket descriptor: int
+ */
 typedef void (*close_callback_t)(const int);
+
+/*
+ * Socket receive callback function
+ *
+ * Params:
+ * the socket descriptor: int
+ */
 typedef void (*recv_callback_t)(const int);
+
+/*
+ * Socket accept callback function
+ *
+ * Params:
+ * the socket descriptor: int
+ * the server address that the accepted the connection: sockaddr_in *
+ */
 typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
 
 /*

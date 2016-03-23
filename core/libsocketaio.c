@@ -20,6 +20,8 @@
  
 #include "./engine/engine.h"
 #include "./socket/socket.h"
+
+unsigned int libsocketaio_version = 100;
  
 int libsocketaio_initialize(const int number_of_workers)
 {	
