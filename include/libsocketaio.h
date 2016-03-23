@@ -24,7 +24,7 @@
 /*
  * The version of the running library
  */
-extern unsigned int libsocketaio_version;
+extern const unsigned int libsocketaio_version;
 
 /*
  * Socket close callback function
