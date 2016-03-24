@@ -33,8 +33,13 @@ void recv_cb(const int sockFD)
 	int len;
 	
 	char buf[4096];
-	
+		
 	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
+	
+	if(len < 0)
+	{
+		return;
+	}
 
 	buf[len] = '\0';
 	

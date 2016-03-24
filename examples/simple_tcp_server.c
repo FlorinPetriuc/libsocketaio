@@ -31,17 +31,14 @@ void recv_cb(const int sockFD)
 	int len;
 	
 	char buf[4096];
-	
+		
 	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
 	
 	if(len < 0)
-	{
-		printf("can not read from socket %d\n", sockFD);
-		fflush(stdout);
-		
+	{		
 		return;
 	}
-	
+		
 	if(send(sockFD, "Hello ", sizeof("Hello ") - 1, 0) < 0)
 	{
 		printf("failed to send to socket %d\n", sockFD);
@@ -49,7 +46,7 @@ void recv_cb(const int sockFD)
 		
 		return;
 	}
-	
+		
 	if(send(sockFD, buf, len, 0) < 0)
 	{
 		printf("failed to send to socket %d\n", sockFD);
@@ -79,10 +76,7 @@ void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
 	newSocket = accept(sockFD, (struct sockaddr *) &cli_addr, &clilen);
 	
 	if(newSocket < 0)
-	{
-		printf("can not accept connection from socket %d\n", sockFD);
-		fflush(stdout);
-		
+	{		
 		return;
 	}
 

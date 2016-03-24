@@ -57,6 +57,22 @@ int register_socket(const int socket, const unsigned char socket_type,
 		return -1;
 	}
 	
+	res = fcntl(socket, F_GETFL, 0);
+	
+	if(res < 0)
+	{
+		return -1;
+	}
+	
+	res |= O_NONBLOCK;
+	
+	res = fcntl(socket, F_SETFL, res);
+	
+	if(res < 0)
+	{
+		return -1;
+	}
+	
 	bind = xmalloc(sizeof(struct socket_evt_bind));
 	
 	bind->sockFD = socket;
