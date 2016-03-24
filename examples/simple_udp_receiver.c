@@ -47,7 +47,7 @@ void recv_cb(const int sockFD)
 	sendto(sockFD, "Hello ", sizeof("Hello ") - 1, 0, (struct sockaddr *)&remote, addr_len);
 	sendto(sockFD, buffer, len, 0, (struct sockaddr *)&remote, addr_len);
 	
-	printf("Sent udp hello to %d", sockFD);
+	printf("Sent udp hello to %d\n", sockFD);
 	fflush(stdout);
 }
 
