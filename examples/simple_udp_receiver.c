@@ -69,17 +69,17 @@ int main(void)
         return 1;
     }
 
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(8000);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(8000);
 
-    if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
-    {
+	if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
+	{
 		printf("can not bind to interface using socket %d\n", sock);
 		close(sock);
 		
-        return 1;
-    }
+		return 1;
+	}
 	
 	listen(sock, 10);
 	

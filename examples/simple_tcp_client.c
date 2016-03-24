@@ -68,15 +68,15 @@ int main(void)
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	
 	if(sock < 0)
-    {
+	{
 		printf("can not create tcp socket %d\n", sock);
 		
-        return 1;
-    }
+		return 1;
+	}
 
-    srv_addr.sin_family = AF_INET;
-    srv_addr.sin_addr.s_addr = MAKE_IPv4(127,0,0,1);
-    srv_addr.sin_port = htons(80);
+	srv_addr.sin_family = AF_INET;
+	srv_addr.sin_addr.s_addr = MAKE_IPv4(127,0,0,1);
+	srv_addr.sin_port = htons(80);
 		
 	res = libsocketaio_initialize(8);
 	if(res)
