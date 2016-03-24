@@ -17,7 +17,7 @@
  * USA.
  *
  */
-
+ 
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,67 +28,26 @@
 
 void recv_cb(const int sockFD)
 {
-	int len;
+	size_t len;
 	
-	char buf[4096];
-		
-	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
+	unsigned char buffer[1024];
 	
+	struct sockaddr_in remote;
+	
+	socklen_t addr_len;
+	
+	addr_len = sizeof(remote);
+	
+	len = recvfrom(sockFD, buffer, 1024, 0, (struct sockaddr *)&remote, &addr_len);
 	if(len <= 0)
-	{		
-		return;
-	}
-		
-	if(send(sockFD, "Hello ", sizeof("Hello ") - 1, 0) < 0)
 	{
-		printf("failed to send to socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-		
-	if(send(sockFD, buf, len, 0) < 0)
-	{
-		printf("failed to send to socket %d\n", sockFD);
-		fflush(stdout);
-		
 		return;
 	}
 	
-	printf("Sent hello\n");
-	fflush(stdout);
-}
-
-void close_cb(const int sockFD)
-{
-	printf("closed socket %d\n", sockFD);
-	fflush(stdout);
-}
-
-void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
-{
-	int newSocket;
+	sendto(sockFD, "Hello ", sizeof("Hello ") - 1, 0, (struct sockaddr *)&remote, addr_len);
+	sendto(sockFD, buffer, len, 0, (struct sockaddr *)&remote, addr_len);
 	
-	struct sockaddr_in cli_addr;
-	
-	socklen_t clilen = sizeof(cli_addr);
-	
-	newSocket = accept(sockFD, (struct sockaddr *) &cli_addr, &clilen);
-	
-	if(newSocket < 0)
-	{		
-		return;
-	}
-
-	if(libsocketaio_register_tcp_socket(newSocket, accept_addr, &cli_addr, recv_cb, close_cb))
-	{
-		printf("can not register socket %d\n", sockFD);
-		fflush(stdout);
-		
-		return;
-	}
-	
-	printf("registered new connection: %d\n", newSocket);
+	printf("Sent udp hello to %d", sockFD);
 	fflush(stdout);
 }
 
@@ -101,18 +60,18 @@ int main(void)
 	
 	signal(SIGPIPE, SIG_IGN);
 	
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	
 	if(sock < 0)
     {
-		printf("can not create tcp socket %d\n", sock);
+		printf("can not create udp socket %d\n", sock);
 		
         return 1;
     }
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(80);
+    addr.sin_port = htons(8000);
 
     if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
     {
@@ -136,7 +95,7 @@ int main(void)
 	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
 	fflush(stdout);
 	
-	libsocketaio_register_tcp_server_socket(sock, &addr, accept_cb);
+	libsocketaio_register_udp_socket(sock, &addr, recv_cb);
 	
 	while(1)
 	{

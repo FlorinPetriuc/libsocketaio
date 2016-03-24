@@ -36,7 +36,7 @@ void recv_cb(const int sockFD)
 		
 	len = recv(sockFD, buf, sizeof(buf) - 1, 0);
 	
-	if(len < 0)
+	if(len <= 0)
 	{
 		return;
 	}

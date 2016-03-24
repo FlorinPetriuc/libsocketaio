@@ -28,6 +28,12 @@ int libsocketaio_initialize(const int number_of_workers)
 	return engine_init(number_of_workers);
 }
 
+int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr,
+																	recv_callback_t recv_cb)
+{
+	return register_socket(socketFD, SOCK_DGRAM, bind_addr, NULL, NULL, recv_cb, NULL);
+}
+
 int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *srv_addr, 
 																	accept_callback_t accept_cb)
 {

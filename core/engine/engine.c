@@ -55,6 +55,24 @@ static struct socket_evt_bind parse_tcp_accept_request(const unsigned char *buf)
 	return ret;
 }
 
+static struct socket_evt_bind parse_udp_recv_request(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+	
+	ret.local_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.local_endpoint.sin_port = buf[36] | (buf[37] << 8);
+	
+	ret.remote_endpoint.sin_addr = 0;
+	ret.remote_endpoint.sin_port = 0;
+	
+	ret.remote_endpoint_present = false;
+	
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_DGRAM;
+	
+	return ret;
+}
+
 static struct socket_evt_bind parse_tcp_push_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
@@ -314,7 +332,29 @@ static void *eth_process(void *arg)
 			}
 			break;
 			
-			default: continue;
+			case IPPROTO_UDP:
+			{
+				lookup = parse_udp_recv_request(eth_pck->buf);
+				
+				map_lookup = hashmap_lookup(lookup_map, &lookup);
+					
+				if(map_lookup == NULL)
+				{						
+					continue;
+				}
+					
+				if(map_lookup->recv_callback == NULL)
+				{
+					continue;
+				}
+					
+				map_lookup->recv_callback(map_lookup->sockFD);
+					
+				continue;
+			}
+			break;
+			
+			default: break;
 		}
 	}
 		

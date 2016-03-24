@@ -45,6 +45,3 @@ Initialize the library and register sockets. Follow the examples.
 	$ make simple_tcp_client
 	$ sudo ./simple_tcp_client
 	```
-
-## TODO
-Support for UDP sockets

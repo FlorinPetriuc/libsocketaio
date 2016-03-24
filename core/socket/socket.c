@@ -37,7 +37,7 @@ int register_socket(const int socket, const unsigned char socket_type,
 	
 	int res;
 
-	if(socket_type != SOCK_STREAM)
+	if(socket_type != SOCK_STREAM && socket_type != SOCK_DGRAM)
 	{
 		return -1;
 	}

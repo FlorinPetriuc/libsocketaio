@@ -78,7 +78,7 @@ TRY_AGAIN:
 	{
 		return NULL;
 	}
-	
+		
 	//accept lookup
 	if(lookup->local_endpoint.sin_addr != INADDR_ANY)
 	{

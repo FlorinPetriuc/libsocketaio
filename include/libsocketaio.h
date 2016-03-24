@@ -66,9 +66,22 @@ typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
 int libsocketaio_initialize(const int number_of_workers);
 
 /*
+ * libsocketaio_register_udp_socket
+ *
+ * Adds a udp socket to the pool of monitored sockets
+ *
+ * Params:
+ * - socketFD - the udp socket descriptor
+ * - bind_addr - the address that the socket is bound to
+ * - recv_cb - callback for handling udp receive
+ */
+int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr,
+																	recv_callback_t recv_cb);
+
+/*
  * libsocketaio_register_tcp_server_socket
  *
- * Adds a server socket for the pool of monitored sockets
+ * Adds a server socket to the pool of monitored sockets
  * 
  * Params:
  * - socketFD - the server socket that has to be monitored
@@ -89,7 +102,7 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * - socketFD - the tcp socket that has to be monitored
  * - local_addr - the local address that the socket is bound to
  * - remote_addr - the remote address that the socket communicates to
- * - recv_cb - callback for handling tcp recveive
+ * - recv_cb - callback for handling tcp receive
  * - close_cb - callback that is called when the socket is closing
  *
  * Returns:

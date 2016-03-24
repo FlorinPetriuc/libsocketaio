@@ -17,7 +17,7 @@
 # USA.
 #
 #
-.PHONY: simple_tcp_server simple_tcp_client clean
+.PHONY: simple_tcp_server simple_tcp_client simple_udp_receiver clean
 
 simple_tcp_server: simple_tcp_server.c
 	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio $(LDFLAGS)
@@ -25,5 +25,8 @@ simple_tcp_server: simple_tcp_server.c
 simple_tcp_client: simple_tcp_client.c
 	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio $(LDFLAGS)
 	
+simple_udp_receiver: simple_udp_receiver.c
+	$(CC) $(CFLAGS) $@.c -o$@ -lsocketaio $(LDFLAGS)
+	
 clean:
-	rm -rf ./simple_tcp_server ./simple_tcp_client
+	rm -rf ./simple_tcp_server ./simple_tcp_client ./simple_udp_receiver
