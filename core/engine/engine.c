@@ -265,7 +265,7 @@ static void *eth_process(void *arg)
 						continue;
 					}
 
-					map_lookup->accept_callback(map_lookup->sockFD);
+					map_lookup->accept_callback(map_lookup->sockFD, map_lookup->arg);
 
 					continue;
 				}
@@ -294,7 +294,7 @@ static void *eth_process(void *arg)
 						continue;
 					}
 
-					map_lookup->close_callback(map_lookup->sockFD);
+					map_lookup->close_callback(map_lookup->sockFD, map_lookup->arg);
 
 					close(map_lookup->sockFD);
 					free(map_lookup);
@@ -319,7 +319,7 @@ static void *eth_process(void *arg)
 						continue;
 					}
 
-					map_lookup->recv_callback(map_lookup->sockFD);
+					map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
 
 					continue;
 				}
@@ -342,7 +342,7 @@ static void *eth_process(void *arg)
 					continue;
 				}
 
-				map_lookup->recv_callback(map_lookup->sockFD);
+				map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
 
 				continue;
 			}

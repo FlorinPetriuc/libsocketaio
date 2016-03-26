@@ -23,12 +23,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include <libsocketaio.h>
 
 #define MAKE_IPv4(x, y, z, t) (x) | ((y) << 8) | ((z) << 16) | ((t) << 24)
 
-void recv_cb(const int sockFD)
+void recv_cb(const int sockFD, void *arg)
 {
 	int len;
 
@@ -43,13 +44,13 @@ void recv_cb(const int sockFD)
 
 	buf[len] = '\0';
 
-	printf("Got: %s\n", buf);
+	printf("Got: %s from %d. Param is %s\n", buf, sockFD, (char *)arg);
 	fflush(stdout);
 }
 
-void close_cb(const int sockFD)
+void close_cb(const int sockFD, void *arg)
 {
-	printf("closed socket %d\n", sockFD);
+	printf("closed socket %d. Param is %s\n", sockFD, (char *)arg);
 	fflush(stdout);
 }
 
@@ -57,6 +58,8 @@ int main(void)
 {
 	int sock;
 	int res;
+
+	char *arg;
 
 	struct sockaddr_in srv_addr;
 
@@ -95,7 +98,10 @@ int main(void)
 		return 1;
 	}
 
-	if(libsocketaio_register_tcp_client_socket(sock, &srv_addr, recv_cb, close_cb))
+	arg = malloc(17);
+	sprintf(arg, "arg%d", sock);
+
+	if(libsocketaio_register_tcp_client_socket(sock, &srv_addr, arg, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sock);
 		fflush(stdout);

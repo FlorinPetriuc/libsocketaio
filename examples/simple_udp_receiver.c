@@ -23,10 +23,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include <libsocketaio.h>
 
-void recv_cb(const int sockFD)
+void recv_cb(const int sockFD, void *arg)
 {
 	size_t len;
 
@@ -47,7 +48,7 @@ void recv_cb(const int sockFD)
 	sendto(sockFD, "Hello ", sizeof("Hello ") - 1, 0, (struct sockaddr *)&remote, addr_len);
 	sendto(sockFD, buffer, len, 0, (struct sockaddr *)&remote, addr_len);
 
-	printf("Sent udp hello to %d\n", sockFD);
+	printf("Sent udp hello to %d.Param is %s\n", sockFD, (char *)arg);
 	fflush(stdout);
 }
 
@@ -55,6 +56,8 @@ int main(void)
 {
 	int sock;
 	int res;
+	
+	char *arg;
 
 	struct sockaddr_in addr;
 
@@ -95,7 +98,10 @@ int main(void)
 	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
 	fflush(stdout);
 
-	libsocketaio_register_udp_socket(sock, &addr, recv_cb);
+	arg = malloc(17);
+	sprintf(arg, "arg%d", sock);
+
+	libsocketaio_register_udp_socket(sock, &addr, arg, recv_cb);
 
 	while(1)
 	{

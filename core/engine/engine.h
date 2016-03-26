@@ -29,9 +29,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-typedef void (*close_callback_t)(const int);
-typedef void (*recv_callback_t)(const int);
-typedef void (*accept_callback_t)(const int);
+typedef void (*close_callback_t)(const int, void *);
+typedef void (*recv_callback_t)(const int, void *);
+typedef void (*accept_callback_t)(const int, void *);
 
 #include "../debug/debug.h"
 #include "../socket/socket.h"
@@ -56,6 +56,8 @@ struct socket_evt_bind
 
 	unsigned char sin_family;
 	unsigned char sin_type;
+
+	void *arg;
 
 	accept_callback_t accept_callback;
 	recv_callback_t recv_callback;

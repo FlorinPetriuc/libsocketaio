@@ -31,8 +31,11 @@ extern const unsigned int libsocketaio_version;
  *
  * Params:
  * the socket descriptor: int
+ *
+ * Warning
+ * the socket will be closed by the library after this call
  */
-typedef void (*close_callback_t)(const int);
+typedef void (*close_callback_t)(const int, void *);
 
 /*
  * Socket receive callback function
@@ -40,7 +43,7 @@ typedef void (*close_callback_t)(const int);
  * Params:
  * the socket descriptor: int
  */
-typedef void (*recv_callback_t)(const int);
+typedef void (*recv_callback_t)(const int, void *);
 
 /*
  * Socket accept callback function
@@ -48,7 +51,7 @@ typedef void (*recv_callback_t)(const int);
  * Params:
  * the socket descriptor: int
  */
-typedef void (*accept_callback_t)(const int);
+typedef void (*accept_callback_t)(const int, void *);
 
 /*
  * libsocketaio_initialize
@@ -74,8 +77,8 @@ int libsocketaio_initialize(const int number_of_workers);
  * - bind_addr - the address that the socket is bound to
  * - recv_cb - callback for handling udp receive
  */
-int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr,
-																	recv_callback_t recv_cb);
+int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr, 
+														void *arg, recv_callback_t recv_cb);
 
 /*
  * libsocketaio_register_tcp_server_socket
@@ -92,7 +95,7 @@ int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bin
  * not 0 - failure
  */
 int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *addr, 
-																accept_callback_t accept_cb);
+														void *arg, accept_callback_t accept_cb);
 
 /*
  * libsocketaio_register_tcp_client_socket
@@ -108,7 +111,7 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * not 0 - failure
  */
 int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr,
-												recv_callback_t recv_cb, close_callback_t close_cb);
+											void *arg, recv_callback_t recv_cb, close_callback_t close_cb);
 
 /*
  * libsocketaio_unregister_socket
@@ -118,6 +121,7 @@ int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_
  *
  * Warning:
  * - this does not close the socket
+ * - this calls the free callback on argument
  */
 int libsocketaio_unregister_socket(const int socketFD);
 

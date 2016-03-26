@@ -23,10 +23,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include <libsocketaio.h>
 
-void recv_cb(const int sockFD)
+void recv_cb(const int sockFD, void *arg)
 {
 	int len;
 
@@ -55,21 +56,23 @@ void recv_cb(const int sockFD)
 		return;
 	}
 
-	printf("Sent hello\n");
+	printf("Sent hello to %d. Param is %s\n", sockFD, (char *)arg);
 	fflush(stdout);
 }
 
-void close_cb(const int sockFD)
+void close_cb(const int sockFD, void *arg)
 {
-	printf("closed socket %d\n", sockFD);
+	printf("closed socket %d. Param is %s\n", sockFD, (char *)arg);
 	fflush(stdout);
 }
 
-void accept_cb(const int sockFD)
+void accept_cb(const int sockFD, void *arg)
 {
 	int newSocket;
 
 	struct sockaddr_in cli_addr;
+	
+	char *new_arg;
 
 	socklen_t clilen = sizeof(cli_addr);
 
@@ -79,8 +82,11 @@ void accept_cb(const int sockFD)
 	{
 		return;
 	}
+	
+	new_arg = malloc(17);
+	sprintf(new_arg, "arg%d", sockFD);
 
-	if(libsocketaio_register_tcp_client_socket(newSocket, &cli_addr, recv_cb, close_cb))
+	if(libsocketaio_register_tcp_client_socket(newSocket, &cli_addr, new_arg, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sockFD);
 		fflush(stdout);
@@ -88,7 +94,7 @@ void accept_cb(const int sockFD)
 		return;
 	}
 
-	printf("registered new connection: %d\n", newSocket);
+	printf("registered new connection: %d. Param is %s\n", newSocket, (char *)arg);
 	fflush(stdout);
 }
 
@@ -98,6 +104,8 @@ int main(void)
 	int res;
 
 	struct sockaddr_in addr;
+	
+	char *arg;
 
 	signal(SIGPIPE, SIG_IGN);
 
@@ -136,7 +144,10 @@ int main(void)
 	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
 	fflush(stdout);
 
-	libsocketaio_register_tcp_server_socket(sock, &addr, accept_cb);
+	arg = malloc(17);
+	sprintf(arg, "arg%d", sock);
+
+	libsocketaio_register_tcp_server_socket(sock, &addr, arg, accept_cb);
 
 	while(1)
 	{
