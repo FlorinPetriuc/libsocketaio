@@ -19,11 +19,17 @@
 #
 
 all:
+	mkdir -p ./core/build
+	mkdir -p ./core/build/obj
+	mkdir -p ./core/build/lib
 	make -f release.mk
 
 debug:
+	mkdir -p ./core/build
+	mkdir -p ./core/build/obj
+	mkdir -p ./core/build/lib
 	make -f debug.mk
-	
+
 install:
 	cp ./core/build/lib/libsocketaio.so /usr/lib/libsocketaio.so
 	cp ./include/libsocketaio.h /usr/include/libsocketaio.h
