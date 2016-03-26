@@ -395,6 +395,11 @@ out:
 	return ret;
 }
 
+int engine_unregister_socket(const int socket)
+{
+	return hashmap_remove_fd(lookup_map, socket);
+}
+
 int engine_register_bind_struct(struct socket_evt_bind *bind)
 {
 	add_to_hashmap(lookup_map, bind);

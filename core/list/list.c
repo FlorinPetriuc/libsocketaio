@@ -70,6 +70,16 @@ void add_to_concurrent_list_head(struct concurrent_list *list, void *value)
 	SIGNAL_COND(list->cond);
 }
 
+static int value_compare_fd(struct socket_evt_bind *bind, const int socket)
+{
+	if(bind->sockFD == socket)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 static int value_compare(struct socket_evt_bind *bind, struct socket_evt_bind *lookup)
 {
 	if(bind->remote_endpoint_present != lookup->remote_endpoint_present)
@@ -138,6 +148,57 @@ void *concurrent_list_lookup(struct concurrent_list *list, void *data)
 	}
 
 	return NULL;
+}
+
+int concurrent_list_remove_fd(struct concurrent_list *list, const int socket)
+{
+	struct list_node *node;
+
+	TAKE_MUTEX(list->mtx);
+
+	node = list->head;
+
+	while(node)
+	{
+		if(value_compare_fd(node->val, socket))
+		{
+			node = node->next;
+
+			continue;
+		}
+
+		break;
+	}
+
+	if(node == NULL)
+	{
+		RELEASE_MUTEX(list->mtx);
+
+		return -1;
+	}
+
+	if(node->prev)
+	{
+		node->prev->next = node->next;
+	}
+
+	if(node->next)
+	{
+		node->next->prev = node->prev;
+	}
+
+	if(node->prev == NULL && node->next == NULL)
+	{
+		list->head = NULL;
+		list->tail = NULL;
+	}
+
+	RELEASE_MUTEX(list->mtx);
+
+	free(node->val);
+	free(node);
+
+	return 0;
 }
 
 void *concurrent_list_remove(struct concurrent_list *list, void *data)

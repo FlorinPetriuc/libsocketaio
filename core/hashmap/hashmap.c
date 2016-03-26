@@ -106,3 +106,22 @@ struct socket_evt_bind *hashmap_remove(struct hashmap *map, struct socket_evt_bi
 
 	return ret;
 }
+
+int hashmap_remove_fd(struct hashmap *map, const int socket)
+{
+	unsigned int i;
+
+	int ret;
+
+	for(i = 0; i < map->buckets_no; ++i)
+	{
+		ret = concurrent_list_remove_fd(map->buckets[i], socket);
+
+		if(ret == 0)
+		{
+			return 0;
+		}
+	}
+
+	return -1;
+}

@@ -110,4 +110,15 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
 int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr,
 												recv_callback_t recv_cb, close_callback_t close_cb);
 
+/*
+ * libsocketaio_unregister_socket
+ *
+ * Params:
+ * - socketFD - the socket that has to be removed monitored sockets
+ *
+ * Warning:
+ * - this does not close the socket
+ */
+int libsocketaio_unregister_socket(const int socketFD);
+
 #endif

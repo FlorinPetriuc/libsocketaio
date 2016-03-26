@@ -73,4 +73,6 @@ int engine_init(const int workers_no);
 
 int engine_register_bind_struct(struct socket_evt_bind *bind);
 
+int engine_unregister_socket(const int socket);
+
 #endif

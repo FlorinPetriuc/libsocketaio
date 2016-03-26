@@ -56,5 +56,6 @@ void wait_for_element(struct concurrent_list *list);
 
 void *concurrent_list_lookup(struct concurrent_list *list, void *data);
 void *concurrent_list_remove(struct concurrent_list *list, void *data);
+int concurrent_list_remove_fd(struct concurrent_list *list, const int socket);
 
 #endif

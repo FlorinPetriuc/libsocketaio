@@ -56,3 +56,8 @@ int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_
 
 	return register_socket(socketFD, SOCK_STREAM, &local_addr, remote_addr, NULL, recv_cb, close_cb);
 }
+
+int libsocketaio_unregister_socket(const int socketFD)
+{
+	return unregister_socket(socketFD);
+}

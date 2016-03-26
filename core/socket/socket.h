@@ -29,6 +29,8 @@
 #include "../misc/memory.h"
 #include "../engine/engine.h"
 
+int unregister_socket(const int socket);
+
 int register_socket(const int socket, const unsigned char socket_type, 
 					struct sockaddr_in *local_endpoint, struct sockaddr_in *remote_endpoint,
 					accept_callback_t accept_callback, recv_callback_t recv_callback, close_callback_t close_callback);
