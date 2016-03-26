@@ -32,6 +32,7 @@
 typedef void (*close_callback_t)(const int, void *);
 typedef void (*recv_callback_t)(const int, void *);
 typedef void (*accept_callback_t)(const int, void *);
+typedef void (*free_callback_t)(void *);
 
 #include "../debug/debug.h"
 #include "../socket/socket.h"
@@ -62,6 +63,7 @@ struct socket_evt_bind
 	accept_callback_t accept_callback;
 	recv_callback_t recv_callback;
 	close_callback_t close_callback;
+	free_callback_t free_callback;
 };
 
 struct eth_pck

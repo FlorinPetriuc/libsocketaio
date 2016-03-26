@@ -54,6 +54,12 @@ void close_cb(const int sockFD, void *arg)
 	fflush(stdout);
 }
 
+void free_cb(void *arg)
+{
+	printf("Free %s\n", (char *)arg);
+	free(arg);
+}
+
 int main(void)
 {
 	int sock;
@@ -101,7 +107,7 @@ int main(void)
 	arg = malloc(17);
 	sprintf(arg, "arg%d", sock);
 
-	if(libsocketaio_register_tcp_client_socket(sock, &srv_addr, arg, recv_cb, close_cb))
+	if(libsocketaio_register_tcp_client_socket(sock, &srv_addr, arg, free_cb, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sock);
 		fflush(stdout);

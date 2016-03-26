@@ -66,6 +66,12 @@ void close_cb(const int sockFD, void *arg)
 	fflush(stdout);
 }
 
+void free_cb(void *arg)
+{
+	printf("Free %s\n", (char *)arg);
+	free(arg);
+}
+
 void accept_cb(const int sockFD, void *arg)
 {
 	int newSocket;
@@ -86,7 +92,7 @@ void accept_cb(const int sockFD, void *arg)
 	new_arg = malloc(17);
 	sprintf(new_arg, "arg%d", sockFD);
 
-	if(libsocketaio_register_tcp_client_socket(newSocket, &cli_addr, new_arg, recv_cb, close_cb))
+	if(libsocketaio_register_tcp_client_socket(newSocket, &cli_addr, new_arg, free_cb, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sockFD);
 		fflush(stdout);
@@ -147,7 +153,7 @@ int main(void)
 	arg = malloc(17);
 	sprintf(arg, "arg%d", sock);
 
-	libsocketaio_register_tcp_server_socket(sock, &addr, arg, accept_cb);
+	libsocketaio_register_tcp_server_socket(sock, &addr, arg, free_cb, accept_cb);
 
 	while(1)
 	{

@@ -33,7 +33,7 @@ int unregister_socket(const int socket);
 
 int register_socket(const int socket, const unsigned char socket_type, 
 					struct sockaddr_in *local_endpoint, struct sockaddr_in *remote_endpoint,
-					void *arg,
+					void *arg, free_callback_t free_callback,
 					accept_callback_t accept_callback, recv_callback_t recv_callback, close_callback_t close_callback);
 
 int create_monitor_socket();

@@ -154,6 +154,8 @@ int concurrent_list_remove_fd(struct concurrent_list *list, const int socket)
 {
 	struct list_node *node;
 
+	struct socket_evt_bind *rem;
+
 	TAKE_MUTEX(list->mtx);
 
 	node = list->head;
@@ -194,6 +196,13 @@ int concurrent_list_remove_fd(struct concurrent_list *list, const int socket)
 	}
 
 	RELEASE_MUTEX(list->mtx);
+
+	rem = node->val;
+
+	if(rem->free_callback)
+	{
+		rem->free_callback(rem->arg);
+	}
 
 	free(node->val);
 	free(node);

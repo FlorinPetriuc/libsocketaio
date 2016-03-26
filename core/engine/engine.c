@@ -296,6 +296,11 @@ static void *eth_process(void *arg)
 
 					map_lookup->close_callback(map_lookup->sockFD, map_lookup->arg);
 
+					if(map_lookup->free_callback)
+					{
+						map_lookup->free_callback(map_lookup->arg);
+					}
+
 					close(map_lookup->sockFD);
 					free(map_lookup);
 

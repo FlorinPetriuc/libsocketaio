@@ -52,6 +52,12 @@ void recv_cb(const int sockFD, void *arg)
 	fflush(stdout);
 }
 
+void free_cb(void *arg)
+{
+	printf("Free %s\n", (char *)arg);
+	free(arg);
+}
+
 int main(void)
 {
 	int sock;
@@ -101,7 +107,7 @@ int main(void)
 	arg = malloc(17);
 	sprintf(arg, "arg%d", sock);
 
-	libsocketaio_register_udp_socket(sock, &addr, arg, recv_cb);
+	libsocketaio_register_udp_socket(sock, &addr, arg, free_cb, recv_cb);
 
 	while(1)
 	{

@@ -27,10 +27,18 @@
 extern const unsigned int libsocketaio_version;
 
 /*
+ * Free argument callback function
+ *
+ * Params:
+ * - the arg pointer passed when the socket was registered
+ */
+typedef void (*free_callback_t)(void *);
+
+/*
  * Socket close callback function
  *
  * Params:
- * the socket descriptor: int
+ * - the socket descriptor: int
  *
  * Warning
  * the socket will be closed by the library after this call
@@ -41,7 +49,7 @@ typedef void (*close_callback_t)(const int, void *);
  * Socket receive callback function
  *
  * Params:
- * the socket descriptor: int
+ * - the socket descriptor: int
  */
 typedef void (*recv_callback_t)(const int, void *);
 
@@ -49,7 +57,7 @@ typedef void (*recv_callback_t)(const int, void *);
  * Socket accept callback function
  *
  * Params:
- * the socket descriptor: int
+ * - the socket descriptor: int
  */
 typedef void (*accept_callback_t)(const int, void *);
 
@@ -75,10 +83,12 @@ int libsocketaio_initialize(const int number_of_workers);
  * Params:
  * - socketFD - the udp socket descriptor
  * - bind_addr - the address that the socket is bound to
+ * - arg - argument that will be passed in all callbacks as void *
+ * - free_cb - callback to free the arg pointer
  * - recv_cb - callback for handling udp receive
  */
-int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr, 
-														void *arg, recv_callback_t recv_cb);
+int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr, void *arg,
+													free_callback_t free_cb, recv_callback_t recv_cb);
 
 /*
  * libsocketaio_register_tcp_server_socket
@@ -88,14 +98,16 @@ int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bin
  * Params:
  * - socketFD - the server socket that has to be monitored
  * - addr - the address that the socket is bound to
- * - accept_cd - callback for handling tcp accept
+ * - arg - argument that will be passed in all callbacks as void *
+ * - free_cb - callback to free the arg pointer
+ * - accept_cb - callback for handling tcp accept
  *
  * Returns:
  * 0 - success
  * not 0 - failure
  */
-int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *addr, 
-														void *arg, accept_callback_t accept_cb);
+int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *addr, void *arg,
+												free_callback_t free_cb, accept_callback_t accept_cb);
 
 /*
  * libsocketaio_register_tcp_client_socket
@@ -103,6 +115,8 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * Params:
  * - socketFD - the tcp socket that has to be monitored
  * - remote_addr - the remote address where the socket communicates to
+ * - arg - argument that will be passed in all callbacks as void *
+ * - free_cb - callback to free the arg pointer
  * - recv_cb - callback for handling tcp receive
  * - close_cb - callback that is called when the socket is closing
  *
@@ -110,8 +124,8 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * 0 - success
  * not 0 - failure
  */
-int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr,
-											void *arg, recv_callback_t recv_cb, close_callback_t close_cb);
+int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr, void *arg,
+									free_callback_t free_cb, recv_callback_t recv_cb, close_callback_t close_cb);
 
 /*
  * libsocketaio_unregister_socket
