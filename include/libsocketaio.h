@@ -96,12 +96,11 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
 																accept_callback_t accept_cb);
 																
 /*
- * libsocketaio_register_tcp_socket
+ * libsocketaio_register_tcp_client_socket
  *
  * Params:
  * - socketFD - the tcp socket that has to be monitored
- * - local_addr - the local address that the socket is bound to
- * - remote_addr - the remote address that the socket communicates to
+ * - remote_addr - the remote address where the socket communicates to
  * - recv_cb - callback for handling tcp receive
  * - close_cb - callback that is called when the socket is closing
  *
@@ -109,7 +108,7 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * 0 - success
  * not 0 - failure
  */
-int libsocketaio_register_tcp_socket(const int socketFD, struct sockaddr_in *local_addr, struct sockaddr_in *remote_addr, 
-																recv_callback_t recv_cb, close_callback_t close_cb);
+int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr, 
+												recv_callback_t recv_cb, close_callback_t close_cb);
 
 #endif

@@ -40,8 +40,19 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
 	return register_socket(socketFD, SOCK_STREAM, srv_addr, NULL, accept_cb, NULL, NULL);
 }
 
-int libsocketaio_register_tcp_socket(const int socketFD, struct sockaddr_in *local_addr, struct sockaddr_in *remote_addr, 
+int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr, 
 																recv_callback_t recv_cb, close_callback_t close_cb)
 {
-	return register_socket(socketFD, SOCK_STREAM, local_addr, remote_addr, NULL, recv_cb, close_cb);
+	struct sockaddr_in local_addr;
+	
+	socklen_t len;
+	
+	len = sizeof(local_addr);
+	
+	if(getsockname(socketFD, (struct sockaddr *)&local_addr, &len))
+	{
+		return 1;
+	}
+	
+	return register_socket(socketFD, SOCK_STREAM, &local_addr, remote_addr, NULL, recv_cb, close_cb);
 }

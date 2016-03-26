@@ -80,7 +80,7 @@ void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
 		return;
 	}
 
-	if(libsocketaio_register_tcp_socket(newSocket, accept_addr, &cli_addr, recv_cb, close_cb))
+	if(libsocketaio_register_tcp_client_socket(newSocket, &cli_addr, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sockFD);
 		fflush(stdout);

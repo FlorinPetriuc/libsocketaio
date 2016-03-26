@@ -59,10 +59,7 @@ int main(void)
 	int res;
 	
 	struct sockaddr_in srv_addr;
-	struct sockaddr_in cli_addr;
-	
-	socklen_t len;
-	
+		
 	signal(SIGPIPE, SIG_IGN);
 	
 	sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -98,17 +95,7 @@ int main(void)
 		return 1;
 	}
 	
-	len = sizeof(cli_addr);
-	
-	if(getsockname(sock, (struct sockaddr *)&cli_addr, &len))
-	{
-		printf("getsockname failed");
-		close(sock);
-		
-		return 1;
-	}
-	
-	if(libsocketaio_register_tcp_socket(sock, &cli_addr, &srv_addr, recv_cb, close_cb))
+	if(libsocketaio_register_tcp_client_socket(sock, &srv_addr, recv_cb, close_cb))
 	{
 		printf("can not register socket %d\n", sock);
 		fflush(stdout);
