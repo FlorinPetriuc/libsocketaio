@@ -31,4 +31,3 @@ install:
 clean:
 	rm ./core/build/obj/*
 	rm ./core/build/lib/*
-	rm ./libsocketaio.so

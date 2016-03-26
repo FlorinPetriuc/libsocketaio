@@ -65,7 +65,7 @@ void close_cb(const int sockFD)
 	fflush(stdout);
 }
 
-void accept_cb(const int sockFD, struct sockaddr_in *accept_addr)
+void accept_cb(const int sockFD)
 {
 	int newSocket;
 	

@@ -31,7 +31,7 @@
 
 typedef void (*close_callback_t)(const int);
 typedef void (*recv_callback_t)(const int);
-typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
+typedef void (*accept_callback_t)(const int);
 
 #include "../debug/debug.h"
 #include "../socket/socket.h"

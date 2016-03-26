@@ -181,9 +181,7 @@ static void *eth_process(void *arg)
 	struct eth_pck *eth_pck = NULL;
 	struct socket_evt_bind lookup;
 	struct socket_evt_bind *map_lookup;
-	
-	struct sockaddr_in accept_addr;
-	
+		
 	unsigned short int pck_type;
 	
 	unsigned char sin_proto;
@@ -255,10 +253,6 @@ static void *eth_process(void *arg)
 					//SYN
 					lookup = parse_tcp_accept_request(eth_pck->buf);
 					
-					accept_addr.sin_addr.s_addr = lookup.local_endpoint.sin_addr;
-					accept_addr.sin_port = lookup.local_endpoint.sin_port;
-					accept_addr.sin_family = AF_INET;
-
 					map_lookup = hashmap_lookup(lookup_map, &lookup);
 					
 					if(map_lookup == NULL)
@@ -271,7 +265,7 @@ static void *eth_process(void *arg)
 						continue;
 					}
 					
-					map_lookup->accept_callback(map_lookup->sockFD, &accept_addr);
+					map_lookup->accept_callback(map_lookup->sockFD);
 					
 					continue;
 				}

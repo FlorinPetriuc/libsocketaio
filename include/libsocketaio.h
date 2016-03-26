@@ -47,9 +47,8 @@ typedef void (*recv_callback_t)(const int);
  *
  * Params:
  * the socket descriptor: int
- * the server address that the accepted the connection: sockaddr_in *
  */
-typedef void (*accept_callback_t)(const int, struct sockaddr_in *);
+typedef void (*accept_callback_t)(const int);
 
 /*
  * libsocketaio_initialize
