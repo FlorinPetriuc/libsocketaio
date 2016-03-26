@@ -44,10 +44,10 @@
 		{\
 			exit(EXIT_FAILURE); \
 		}
-		
+
 #define WAIT_COND(x, y)\
 		pthread_cond_wait(&x, &y)
-		
+
 #define SIGNAL_COND(x)\
 		pthread_cond_signal(&x)
 

@@ -23,14 +23,14 @@
 void *xmalloc(const size_t size)
 {
 	void *ret;
-	
+
 	ret = malloc(size);
-	
+
 	if(ret == NULL)
 	{
 		libsocketaio_print("[FATAL] Out of memory", 0);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	return ret;
 }

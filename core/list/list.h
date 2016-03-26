@@ -32,7 +32,7 @@ struct list_node;
 struct list_node
 {
 	void *val;
-	
+
 	struct list_node *next;
 	struct list_node *prev;
 };
@@ -40,9 +40,9 @@ struct list_node
 struct concurrent_list
 {
 	pthread_mutex_t mtx;
-	
+
 	pthread_cond_t cond;
-	
+
 	struct list_node *head;
 	struct list_node *tail;
 };

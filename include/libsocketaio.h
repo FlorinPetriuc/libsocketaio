@@ -93,7 +93,7 @@ int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bin
  */
 int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *addr, 
 																accept_callback_t accept_cb);
-																
+
 /*
  * libsocketaio_register_tcp_client_socket
  *
@@ -107,7 +107,7 @@ int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_
  * 0 - success
  * not 0 - failure
  */
-int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr, 
+int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr,
 												recv_callback_t recv_cb, close_callback_t close_cb);
 
 #endif

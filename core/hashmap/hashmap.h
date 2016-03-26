@@ -31,9 +31,9 @@ typedef unsigned int (*hash_fct_t)(struct socket_evt_bind *);
 struct hashmap
 {
 	struct concurrent_list **buckets;
-	
+
 	unsigned int buckets_no;
-	
+
 	hash_fct_t hash_fct;
 };
 

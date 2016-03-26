@@ -41,22 +41,22 @@ typedef void (*accept_callback_t)(const int);
 struct enpoint
 {
 	in_addr_t sin_addr;
-	
+
 	unsigned short int sin_port;
 };
 
 struct socket_evt_bind
 {
 	int sockFD;
-	
+
 	struct enpoint local_endpoint;
 	struct enpoint remote_endpoint;	
-	
+
 	bool remote_endpoint_present;
-	
+
 	unsigned char sin_family;
 	unsigned char sin_type;
-	
+
 	accept_callback_t accept_callback;
 	recv_callback_t recv_callback;
 	close_callback_t close_callback;
@@ -65,7 +65,7 @@ struct socket_evt_bind
 struct eth_pck
 {
 	unsigned char *buf;
-	
+
 	int len;
 };
 

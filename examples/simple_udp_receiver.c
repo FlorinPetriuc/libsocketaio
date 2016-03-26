@@ -17,36 +17,36 @@
  * USA.
  *
  */
- 
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
- 
+
 #include <libsocketaio.h>
 
 void recv_cb(const int sockFD)
 {
 	size_t len;
-	
+
 	unsigned char buffer[1024];
-	
+
 	struct sockaddr_in remote;
-	
+
 	socklen_t addr_len;
-	
+
 	addr_len = sizeof(remote);
-	
+
 	len = recvfrom(sockFD, buffer, 1024, 0, (struct sockaddr *)&remote, &addr_len);
 	if(len <= 0)
 	{
 		return;
 	}
-	
+
 	sendto(sockFD, "Hello ", sizeof("Hello ") - 1, 0, (struct sockaddr *)&remote, addr_len);
 	sendto(sockFD, buffer, len, 0, (struct sockaddr *)&remote, addr_len);
-	
+
 	printf("Sent udp hello to %d\n", sockFD);
 	fflush(stdout);
 }
@@ -55,19 +55,19 @@ int main(void)
 {
 	int sock;
 	int res;
-	
+
 	struct sockaddr_in addr;
-	
+
 	signal(SIGPIPE, SIG_IGN);
-	
+
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	
+
 	if(sock < 0)
     {
 		printf("can not create udp socket %d\n", sock);
-		
-        return 1;
-    }
+
+		return 1;
+	}
 
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
@@ -77,26 +77,26 @@ int main(void)
 	{
 		printf("can not bind to interface using socket %d\n", sock);
 		close(sock);
-		
+
 		return 1;
 	}
-	
+
 	listen(sock, 10);
-	
+
 	res = libsocketaio_initialize(8);
 	if(res)
 	{
 		printf("libsocketaio_initialize failed");
 		close(sock);
-		
+
 		return 1;
 	}
-	
+
 	printf("Libsocketaio initialized. Version: %u\n", libsocketaio_version);
 	fflush(stdout);
-	
+
 	libsocketaio_register_udp_socket(sock, &addr, recv_cb);
-	
+
 	while(1)
 	{
 		sleep(1);
