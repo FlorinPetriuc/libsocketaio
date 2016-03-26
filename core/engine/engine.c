@@ -162,6 +162,18 @@ static void *eth_listen(void *arg)
 			continue;
 		}
 
+		if(len < 38)
+		{
+			continue;
+		}
+
+		//not ipv4 protocol
+		if(((buf[12] << 8) | buf[13]) != 0x0800 ||
+			(buf[14] >> 4) != 4)
+		{
+			continue;
+		}
+
 		to_push = xmalloc(sizeof(struct eth_pck));
 
 		to_push->buf = xmalloc(len);
@@ -181,8 +193,6 @@ static void *eth_process(void *arg)
 	struct eth_pck *eth_pck = NULL;
 	struct socket_evt_bind lookup;
 	struct socket_evt_bind *map_lookup;
-
-	unsigned short int pck_type;
 
 	unsigned char sin_proto;
 
@@ -207,30 +217,6 @@ static void *eth_process(void *arg)
 			continue;
 		}
 
-		if(eth_pck->len < 13)
-		{
-			continue;
-		}
-
-		pck_type = (eth_pck->buf[12] << 8) | eth_pck->buf[13];
-
-		//ip protocol
-		if(pck_type != 0x0800)
-		{
-			continue;
-		}
-
-		if(eth_pck->len < 23)
-		{
-			continue;
-		}
-
-		//ipv4
-		if(eth_pck->buf[14] >> 4 != 4)
-		{
-			continue;
-		}
-
 		sin_proto = eth_pck->buf[23];
 
 		switch(sin_proto)
@@ -239,13 +225,13 @@ static void *eth_process(void *arg)
 			{
 				if(eth_pck->len < 47)
 				{
-					continue;
+					break;
 				}
 
 				if(!(eth_pck->buf[47] & 16))
 				{
 					//must contain ack
-					continue;
+					break;
 				}
 
 				if(eth_pck->buf[47] & 2)
@@ -257,17 +243,17 @@ static void *eth_process(void *arg)
 
 					if(map_lookup == NULL)
 					{
-						continue;
+						break;
 					}
 
 					if(map_lookup->accept_callback == NULL)
 					{
-						continue;
+						break;
 					}
 
 					map_lookup->accept_callback(map_lookup->sockFD, map_lookup->arg);
 
-					continue;
+					break;
 				}
 
 				if((eth_pck->buf[47] & 4) || (eth_pck->buf[47] & 1))
@@ -285,13 +271,13 @@ static void *eth_process(void *arg)
 
 						if(map_lookup == NULL)
 						{
-							continue;
+							break;
 						}
 					}
 
 					if(map_lookup->close_callback == NULL)
 					{
-						continue;
+						break;
 					}
 
 					map_lookup->close_callback(map_lookup->sockFD, map_lookup->arg);
@@ -304,7 +290,7 @@ static void *eth_process(void *arg)
 					close(map_lookup->sockFD);
 					free(map_lookup);
 
-					continue;
+					break;
 				}
 
 				if(eth_pck->buf[47] & 8)
@@ -316,17 +302,15 @@ static void *eth_process(void *arg)
 
 					if(map_lookup == NULL)
 					{
-						continue;
+						break;
 					}
 
 					if(map_lookup->recv_callback == NULL)
 					{
-						continue;
+						break;
 					}
 
 					map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
-
-					continue;
 				}
 			}
 			break;
@@ -339,17 +323,15 @@ static void *eth_process(void *arg)
 
 				if(map_lookup == NULL)
 				{
-					continue;
+					break;
 				}
 
 				if(map_lookup->recv_callback == NULL)
 				{
-					continue;
+					break;
 				}
 
 				map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
-
-				continue;
 			}
 			break;
 
