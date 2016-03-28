@@ -424,9 +424,9 @@ static void *eth_process(void *arg)
 
 					map_lookup->accept_sequence = 0;
 
-					pthread_mutex_unlock(process_mutex);
-
 					map_lookup->accept_callback(map_lookup->sockFD, map_lookup->arg);
+
+					pthread_mutex_unlock(process_mutex);
 
 					libsocketaio_print("[INFO] accept complete for %d\n", 1, map_lookup->sockFD);
 

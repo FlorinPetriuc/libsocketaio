@@ -15,7 +15,7 @@
 #include "./engine/engine.h"
 #include "./socket/socket.h"
 
-const unsigned int libsocketaio_version = 102;
+const unsigned int libsocketaio_version = 103;
 
 int libsocketaio_initialize(int number_of_workers)
 {
