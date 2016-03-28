@@ -67,7 +67,7 @@ typedef void (*accept_callback_t)(const int, void *);
  * 0 - success
  * not 0 - failure
  */
-int libsocketaio_initialize(const int number_of_workers);
+int libsocketaio_initialize(int number_of_workers);
 
 /*
  * libsocketaio_register_udp_socket

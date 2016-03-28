@@ -23,15 +23,15 @@ int create_monitor_socket()
 	return ret;
 }
 
-int unregister_socket(const int socket)
+int libsocketaio_unregister_socket_fd(int socket)
 {
-	return engine_unregister_socket(socket);
+	return libsocketaio_engine_unregister_socket(socket);
 }
 
-int register_socket(const int socket, const unsigned char socket_type, 
-					struct sockaddr_in *local_endpoint, struct sockaddr_in *remote_endpoint,
-					void *arg, free_callback_t free_callback,
-					accept_callback_t accept_callback, recv_callback_t recv_callback, close_callback_t close_callback)
+int libsocketaio_register_socket(const int socket, const unsigned char socket_type,
+								struct sockaddr_in *local_endpoint, struct sockaddr_in *remote_endpoint,
+								void *arg, free_callback_t free_callback,
+								accept_callback_t accept_callback, recv_callback_t recv_callback, close_callback_t close_callback)
 {
 	struct socket_evt_bind *bind;
 
@@ -105,13 +105,15 @@ int register_socket(const int socket, const unsigned char socket_type,
 		bind->remote_endpoint.sin_port = 0;
 	}
 
+	bind->accept_sequence = 0;
+	bind->push_sequence = 0;
 	bind->accept_callback = accept_callback;
 	bind->recv_callback = recv_callback;
 	bind->close_callback = close_callback;
 	bind->free_callback = free_callback;
 	bind->arg = arg;
 
-	res = engine_register_bind_struct(bind);
+	res = libsocketaio_engine_register_bind_struct(bind);
 
 	if(res)
 	{

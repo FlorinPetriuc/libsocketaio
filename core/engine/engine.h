@@ -33,6 +33,13 @@ typedef void (*free_callback_t)(void *);
 #include "../misc/memory.h"
 #include "../hashmap/hashmap.h"
 
+enum engine_operation_t
+{
+	LIBSOCKETAIO_ENGINE_INIT,
+	LIBSOCKETAIO_ENGINE_REGISTER,
+	LIBSOCKETAIO_ENGINE_UNREGISTER
+};
+
 struct enpoint
 {
 	in_addr_t sin_addr;
@@ -52,12 +59,24 @@ struct socket_evt_bind
 	unsigned char sin_family;
 	unsigned char sin_type;
 
+	unsigned int accept_sequence;
+	unsigned int push_sequence;
+
 	void *arg;
 
 	accept_callback_t accept_callback;
 	recv_callback_t recv_callback;
 	close_callback_t close_callback;
 	free_callback_t free_callback;
+};
+
+struct eth_init_process
+{
+	struct hashmap *lookup_map;
+
+	struct concurrent_list *eth_queue;
+
+	pthread_mutex_t *process_mutex;
 };
 
 struct eth_pck
@@ -67,10 +86,8 @@ struct eth_pck
 	int len;
 };
 
-int engine_init(const int workers_no);
-
-int engine_register_bind_struct(struct socket_evt_bind *bind);
-
-int engine_unregister_socket(const int socket);
+int libsocketaio_engine_init(int workers_no);
+int libsocketaio_engine_register_bind_struct(struct socket_evt_bind *bind);
+int libsocketaio_engine_unregister_socket(int socket);
 
 #endif

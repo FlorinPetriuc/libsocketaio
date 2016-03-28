@@ -56,6 +56,7 @@ int main(void)
 {
 	int sock;
 	int res;
+	int reuse = 1;
 	
 	char *arg;
 
@@ -75,6 +76,8 @@ int main(void)
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(8000);
+
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
 
 	if(bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))<0)
 	{

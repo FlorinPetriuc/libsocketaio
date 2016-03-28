@@ -15,23 +15,23 @@
 #include "./engine/engine.h"
 #include "./socket/socket.h"
 
-const unsigned int libsocketaio_version = 101;
+const unsigned int libsocketaio_version = 102;
 
-int libsocketaio_initialize(const int number_of_workers)
+int libsocketaio_initialize(int number_of_workers)
 {
-	return engine_init(number_of_workers);
+	return libsocketaio_engine_init(number_of_workers);
 }
 
 int libsocketaio_register_udp_socket(const int socketFD, struct sockaddr_in *bind_addr, void *arg,
 														free_callback_t free_cb, recv_callback_t recv_cb)
 {
-	return register_socket(socketFD, SOCK_DGRAM, bind_addr, NULL, arg, free_cb, NULL, recv_cb, NULL);
+	return libsocketaio_register_socket(socketFD, SOCK_DGRAM, bind_addr, NULL, arg, free_cb, NULL, recv_cb, NULL);
 }
 
 int libsocketaio_register_tcp_server_socket(const int socketFD, struct sockaddr_in *srv_addr, void *arg,
 														free_callback_t free_cb, accept_callback_t accept_cb)
 {
-	return register_socket(socketFD, SOCK_STREAM, srv_addr, NULL, arg, free_cb, accept_cb, NULL, NULL);
+	return libsocketaio_register_socket(socketFD, SOCK_STREAM, srv_addr, NULL, arg, free_cb, accept_cb, NULL, NULL);
 }
 
 int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_in *remote_addr, void *arg,
@@ -48,10 +48,10 @@ int libsocketaio_register_tcp_client_socket(const int socketFD, struct sockaddr_
 		return 1;
 	}
 
-	return register_socket(socketFD, SOCK_STREAM, &local_addr, remote_addr, arg, free_cb, NULL, recv_cb, close_cb);
+	return libsocketaio_register_socket(socketFD, SOCK_STREAM, &local_addr, remote_addr, arg, free_cb, NULL, recv_cb, close_cb);
 }
 
 int libsocketaio_unregister_socket(const int socketFD)
 {
-	return unregister_socket(socketFD);
+	return libsocketaio_unregister_socket(socketFD);
 }

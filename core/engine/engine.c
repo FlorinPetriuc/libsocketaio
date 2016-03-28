@@ -14,8 +14,6 @@
 
 #include "engine.h"
 
-static struct hashmap *lookup_map = NULL;
-
 static unsigned int hashGenerator(struct socket_evt_bind *bind)
 {
 	unsigned int hash = 0;
@@ -43,8 +41,30 @@ static struct socket_evt_bind parse_tcp_accept_request(const unsigned char *buf)
 	ret.remote_endpoint.sin_addr = 0;
 	ret.remote_endpoint.sin_port = 0;
 
+	ret.accept_sequence = (buf[42] << 24) | (buf[43] << 16) | (buf[44] << 8) | (buf[45]);
+
 	ret.sin_family = AF_INET;
 	ret.sin_type = SOCK_STREAM;	
+
+	return ret;
+}
+
+static struct socket_evt_bind parse_tcp_accept_ack_request(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+
+	ret.local_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.local_endpoint.sin_port = buf[36] | (buf[37] << 8);
+
+	ret.remote_endpoint_present = false;
+
+	ret.remote_endpoint.sin_addr = 0;
+	ret.remote_endpoint.sin_port = 0;
+
+	ret.accept_sequence = (buf[38] << 24) | (buf[39] << 16) | (buf[40] << 8) | (buf[41]);
+
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_STREAM;
 
 	return ret;
 }
@@ -67,6 +87,26 @@ static struct socket_evt_bind parse_udp_recv_request(const unsigned char *buf)
 	return ret;
 }
 
+static struct socket_evt_bind parse_tcp_push_ack_request(const unsigned char *buf)
+{
+	struct socket_evt_bind ret;
+
+	ret.remote_endpoint.sin_addr = buf[30] | (buf[31] << 8) | (buf[32] << 16) | (buf[33] << 24);
+	ret.remote_endpoint.sin_port = buf[36] | (buf[37] << 8);
+
+	ret.local_endpoint.sin_addr = buf[26] | (buf[27] << 8) | (buf[28] << 16) | (buf[29] << 24);
+	ret.local_endpoint.sin_port = buf[34] | (buf[35] << 8);
+
+	ret.remote_endpoint_present = true;
+
+	ret.push_sequence = (buf[38] << 24) | (buf[39] << 16) | (buf[40] << 8) | (buf[41]);
+
+	ret.sin_family = AF_INET;
+	ret.sin_type = SOCK_STREAM;
+
+	return ret;
+}
+
 static struct socket_evt_bind parse_tcp_push_request(const unsigned char *buf)
 {
 	struct socket_evt_bind ret;
@@ -78,6 +118,8 @@ static struct socket_evt_bind parse_tcp_push_request(const unsigned char *buf)
 	ret.remote_endpoint.sin_port = buf[34] | (buf[35] << 8);
 
 	ret.remote_endpoint_present = true;
+
+	ret.push_sequence = (buf[42] << 24) | (buf[43] << 16) | (buf[44] << 8) | (buf[45]);
 
 	ret.sin_family = AF_INET;
 	ret.sin_type = SOCK_STREAM;
@@ -141,7 +183,7 @@ static void *eth_listen(void *arg)
 
 	if(sockFD < 0)
 	{
-		libsocketaio_print("[FATAL] Unable to create monitor socket", 0);
+		libsocketaio_print("[FATAL] Unable to create monitor socket\n", 0);
 		exit(EXIT_FAILURE);
 	}
 
@@ -151,7 +193,7 @@ static void *eth_listen(void *arg)
 
 		if(len < 0)
 		{
-			libsocketaio_print("[ERROR] Unable to read from monitor socket", 0);
+			libsocketaio_print("[ERROR] Unable to read from monitor socket\n", 0);
 
 			continue;
 		}
@@ -187,10 +229,16 @@ static void *eth_process(void *arg)
 	struct eth_pck *eth_pck = NULL;
 	struct socket_evt_bind lookup;
 	struct socket_evt_bind *map_lookup;
+	struct eth_init_process *eth_init;
+	struct hashmap *lookup_map;
 
-	unsigned char sin_proto;
+	pthread_mutex_t *process_mutex;
 
-	eth_queue = arg;
+	eth_init = arg;
+
+	eth_queue = eth_init->eth_queue;
+	lookup_map = eth_init->lookup_map;
+	process_mutex = eth_init->process_mutex;
 
 	while(1)
 	{
@@ -202,29 +250,36 @@ static void *eth_process(void *arg)
 			eth_pck = NULL;
 		}
 
+		pthread_mutex_lock(process_mutex);
+
 		wait_for_element(eth_queue);
 
 		eth_pck = remove_from_concurrent_list_tail(eth_queue);
 
 		if(eth_pck == NULL)
 		{
+			pthread_mutex_unlock(process_mutex);
+
 			continue;
 		}
 
-		sin_proto = eth_pck->buf[23];
-
-		switch(sin_proto)
+		switch(eth_pck->buf[23])
 		{
 			case IPPROTO_TCP:
 			{
 				if(eth_pck->len < 47)
 				{
+					pthread_mutex_unlock(process_mutex);
+
 					break;
 				}
 
 				if(!(eth_pck->buf[47] & 16))
 				{
 					//must contain ack
+
+					pthread_mutex_unlock(process_mutex);
+
 					break;
 				}
 
@@ -237,15 +292,27 @@ static void *eth_process(void *arg)
 
 					if(map_lookup == NULL)
 					{
+						pthread_mutex_unlock(process_mutex);
+
+						libsocketaio_print("[INFO] unmonitored accept\n", 0);
+
 						break;
 					}
 
 					if(map_lookup->accept_callback == NULL)
 					{
+						pthread_mutex_unlock(process_mutex);
+
+						libsocketaio_print("[INFO] accept with no callback\n", 0);
+
 						break;
 					}
 
-					map_lookup->accept_callback(map_lookup->sockFD, map_lookup->arg);
+					map_lookup->accept_sequence = lookup.accept_sequence;
+
+					libsocketaio_print("[INFO] accept sequence for %d is %u\n", 2, map_lookup->sockFD, map_lookup->accept_sequence);
+
+					pthread_mutex_unlock(process_mutex);
 
 					break;
 				}
@@ -262,19 +329,23 @@ static void *eth_process(void *arg)
 						lookup = parse_tcp_close_request_reverse(eth_pck->buf);
 
 						map_lookup = hashmap_remove(lookup_map, &lookup);
-
-						if(map_lookup == NULL)
-						{
-							break;
-						}
 					}
 
-					if(map_lookup->close_callback == NULL)
+					pthread_mutex_unlock(process_mutex);
+
+					if(map_lookup == NULL)
 					{
+						libsocketaio_print("[INFO] unmonitored close\n", 0);
+
 						break;
 					}
 
-					map_lookup->close_callback(map_lookup->sockFD, map_lookup->arg);
+					if(map_lookup->close_callback)
+					{
+						map_lookup->close_callback(map_lookup->sockFD, map_lookup->arg);
+					}
+
+					libsocketaio_print("[INFO] closing %d\n", 1, map_lookup->sockFD);
 
 					if(map_lookup->free_callback)
 					{
@@ -296,94 +367,261 @@ static void *eth_process(void *arg)
 
 					if(map_lookup == NULL)
 					{
+						pthread_mutex_unlock(process_mutex);
+
+						libsocketaio_print("[INFO] got tcp data on unmonitored socket\n", 0);
+
 						break;
 					}
 
 					if(map_lookup->recv_callback == NULL)
 					{
+						pthread_mutex_unlock(process_mutex);
+
+						libsocketaio_print("[INFO] got tcp data on socket with no recv callback\n", 0);
+
 						break;
 					}
 
-					map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
+					map_lookup->push_sequence = lookup.push_sequence;
+
+					libsocketaio_print("[INFO] push sequence for %d is %u\n", 2, map_lookup->sockFD, map_lookup->push_sequence);
+
+					pthread_mutex_unlock(process_mutex);
+
+					break;
 				}
+
+				if(eth_pck->buf[47] == 16)
+				{
+					lookup = parse_tcp_accept_ack_request(eth_pck->buf);
+
+					map_lookup = hashmap_lookup(lookup_map, &lookup);
+
+					if(map_lookup == NULL)
+					{
+						goto process_psh_ack;
+					}
+
+					if(map_lookup->accept_callback == NULL)
+					{
+						goto process_psh_ack;
+					}
+
+					if(map_lookup->accept_sequence == 0)
+					{
+						libsocketaio_print("[INFO] unexpected accept ack\n", 0);
+
+						goto process_psh_ack;
+					}
+
+					if(map_lookup->accept_sequence != lookup.accept_sequence)
+					{
+						libsocketaio_print("[INFO] wrong accept sequence in ack\n", 0);
+
+						goto process_psh_ack;
+					}
+
+					map_lookup->accept_sequence = 0;
+
+					pthread_mutex_unlock(process_mutex);
+
+					map_lookup->accept_callback(map_lookup->sockFD, map_lookup->arg);
+
+					libsocketaio_print("[INFO] accept complete for %d\n", 1, map_lookup->sockFD);
+
+					break;
+
+process_psh_ack:
+
+					lookup = parse_tcp_push_ack_request(eth_pck->buf);
+
+					map_lookup = hashmap_lookup(lookup_map, &lookup);
+
+					if(map_lookup == NULL)
+					{
+						pthread_mutex_unlock(process_mutex);
+
+						break;
+					}
+
+					if(map_lookup->recv_callback == NULL)
+					{
+						pthread_mutex_unlock(process_mutex);
+
+						break;
+					}
+
+					if(map_lookup->push_sequence == 0)
+					{
+						pthread_mutex_unlock(process_mutex);
+
+						break;
+					}
+
+					if(map_lookup->push_sequence != lookup.push_sequence)
+					{
+						pthread_mutex_unlock(process_mutex);
+
+						libsocketaio_print("[INFO] wrong push sequence in ack %u vs %u\n", 2, 	map_lookup->push_sequence, 
+																								lookup.push_sequence);
+
+						break;
+					}
+
+					map_lookup->push_sequence = 0;
+
+					pthread_mutex_unlock(process_mutex);
+
+					map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
+
+					libsocketaio_print("[INFO] push complete for %d\n", 1, map_lookup->sockFD);
+
+					break;
+				}
+
+				pthread_mutex_unlock(process_mutex);
 			}
 			break;
 
 			case IPPROTO_UDP:
 			{
+				pthread_mutex_unlock(process_mutex);
+
 				lookup = parse_udp_recv_request(eth_pck->buf);
 
 				map_lookup = hashmap_lookup(lookup_map, &lookup);
 
 				if(map_lookup == NULL)
 				{
+					libsocketaio_print("[INFO] got udp data on unmonitored socket\n", 0);
+
 					break;
 				}
 
 				if(map_lookup->recv_callback == NULL)
 				{
+					libsocketaio_print("[INFO] got udp data on socket with no recv callback\n", 0);
+
 					break;
 				}
+
+				libsocketaio_print("[INFO] got udp data on socket %d\n", 1, map_lookup->sockFD);
 
 				map_lookup->recv_callback(map_lookup->sockFD, map_lookup->arg);
 			}
 			break;
 
-			default: break;
+			default:
+			{
+				pthread_mutex_unlock(process_mutex);
+			}
+			break;
 		}
 	}
 
 	return NULL;
 }
 
-int engine_init(const int workers_no)
+static int libsocketaio_engine_do(const enum engine_operation_t op, void *arg)
 {
+	static struct hashmap *lookup_map;
+	static bool initialized = false;
+	static pthread_mutex_t *process_mutex;
+	static struct concurrent_list *eth_queue;
+
 	pthread_t worker;
 
-	struct concurrent_list *eth_queue;
+	struct eth_init_process *eth_init;
+
+	struct socket_evt_bind *bind;
 
 	int ret;
 	int i;
+	int workers_no;
+	int socket;
 
-	if(workers_no == 0)
+	switch(op)
 	{
-		return 1;
-	}
-
-	eth_queue = new_concurrent_list();
-
-	lookup_map = new_hashmap(64 * 1024, hashGenerator);
-
-	ret = pthread_create(&worker, NULL, eth_listen, eth_queue);
-	if(ret)
-	{
-		goto out;
-	}
-
-	for(i = 0; i < workers_no; ++i)
-	{
-		ret = pthread_create(&worker, NULL, eth_process, eth_queue);
-
-		if(ret)
+		case LIBSOCKETAIO_ENGINE_INIT:
 		{
-			goto out;
-		}
-	}
+			workers_no = *(int *)arg;
 
-	libsocketaio_print("[INFO] libsocketaio initialized with %d workers: ", 1, workers_no);
+			if(workers_no == 0)
+			{
+				return 1;
+			}
+
+			if(initialized)
+			{
+				return 1;
+			}
+
+			process_mutex = xmalloc(sizeof(pthread_mutex_t));
+
+			pthread_mutex_init(process_mutex, NULL);
+
+			eth_queue = new_concurrent_list();
+
+			lookup_map = new_hashmap(64 * 1024, hashGenerator);
+
+			eth_init = xmalloc(sizeof(struct eth_init_process));
+			eth_init->lookup_map = lookup_map;
+			eth_init->eth_queue = eth_queue;
+			eth_init->process_mutex = process_mutex;
+
+			ret = pthread_create(&worker, NULL, eth_listen, eth_queue);
+			if(ret)
+			{
+				goto out;
+			}
+
+			for(i = 0; i < workers_no; ++i)
+			{
+				ret = pthread_create(&worker, NULL, eth_process, eth_init);
+
+				if(ret)
+				{
+					goto out;
+				}
+			}
+
+			libsocketaio_print("[INFO] libsocketaio initialized with %d workers\n", 1, workers_no);
+			initialized = true;
+		}
 
 out:
-	return ret;
+		return ret;
+
+		case LIBSOCKETAIO_ENGINE_REGISTER:
+		{
+			bind = arg;
+
+			add_to_hashmap(lookup_map, bind);
+		}
+		return 0;
+
+		case LIBSOCKETAIO_ENGINE_UNREGISTER: 
+		{
+			socket = *(int *)arg;
+		}
+		return hashmap_remove_fd(lookup_map, socket);
+
+		default: return 1;
+	}
 }
 
-int engine_unregister_socket(const int socket)
+int libsocketaio_engine_init(int workers_no)
 {
-	return hashmap_remove_fd(lookup_map, socket);
+	return libsocketaio_engine_do(LIBSOCKETAIO_ENGINE_INIT, &workers_no);
 }
 
-int engine_register_bind_struct(struct socket_evt_bind *bind)
+int libsocketaio_engine_unregister_socket(int socket)
 {
-	add_to_hashmap(lookup_map, bind);
+	return libsocketaio_engine_do(LIBSOCKETAIO_ENGINE_UNREGISTER, &socket);
+}
 
-	return 0;
+int libsocketaio_engine_register_bind_struct(struct socket_evt_bind *bind)
+{
+	return libsocketaio_engine_do(LIBSOCKETAIO_ENGINE_REGISTER, bind);
 }
